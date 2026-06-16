@@ -3,20 +3,24 @@ import { container } from '../state.js';
 export function renderHomeStage() {
   container.innerHTML = "";
 
+  const isCurrentlyLoading = !window.appLoaded;
+
   const html = `
     <div class="flex flex-col w-full" id="home-scroll-root">
 
       <!-- ══ PAGE 1: Cover ══ -->
       <section class="home-snap-section flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
-        <div class="absolute -z-10 w-72 h-72 sm:w-[420px] sm:h-[420px] rounded-full border border-stone-200/70" style="background:radial-gradient(circle,rgba(200,190,255,0.1) 0%,transparent 70%);"></div>
-        <h1 class="mb-3 text-6xl sm:text-7xl lg:text-8xl font-bold text-stone-800" style="font-family:'Dancing Script',cursive;line-height:1.1;letter-spacing:calc(0.05em + 1.5px) !important;">Color Vision</h1>
-        <p class="text-stone-400 text-sm sm:text-base font-semibold tracking-[0.22em] uppercase mb-6">색각 능력 진단 플랫폼</p>
-        <p class="text-stone-500 text-sm sm:text-base max-w-lg mx-auto break-keep leading-relaxed mb-10">
+        <div id="home-cover-circle" class="absolute -z-10 w-72 h-72 sm:w-[420px] sm:h-[420px] rounded-full border border-stone-200/70 ${isCurrentlyLoading ? 'loading-circle' : ''}" style="background:radial-gradient(circle,rgba(200,190,255,0.1) 0%,transparent 70%);"></div>
+        <h1 id="home-cover-title" class="mb-3 text-6xl sm:text-7xl lg:text-8xl font-bold text-stone-800 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="font-family:'Dancing Script',cursive;line-height:1.1;letter-spacing:calc(0.05em + 1.5px) !important; --stagger: 0ms;">Color Vision</h1>
+        <p id="home-cover-subtitle" class="text-stone-400 text-sm sm:text-base font-semibold tracking-[0.22em] uppercase mb-6 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 300ms;">색각 능력 진단 플랫폼</p>
+        <p id="home-cover-desc" class="text-stone-500 text-sm sm:text-base max-w-lg mx-auto break-keep leading-relaxed mb-10 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 600ms;">
           색각 이상은 단순한 시력 문제가 아닌,<br>세상을 인지하는 또 다른 방식입니다.
         </p>
-        <div class="flex flex-col items-center gap-1.5 animate-bounce">
-          <span class="text-[11px] text-stone-400 tracking-widest uppercase">Scroll</span>
-          <svg class="w-5 h-5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <div id="home-cover-scroll" class="${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 900ms;">
+          <div class="flex flex-col items-center gap-1.5 animate-bounce">
+            <span class="text-[11px] text-stone-400 tracking-widest uppercase">Scroll</span>
+            <svg class="w-5 h-5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
         </div>
       </section>
 
@@ -149,6 +153,95 @@ export function renderHomeStage() {
     }
   `;
   document.head.appendChild(style);
+
+  // ── Loading sequence transition controller ──
+  if (isCurrentlyLoading) {
+    const loadStartTime = Date.now();
+    const MIN_LOAD_TIME = 1500; // 1.5 seconds minimum delay for layout polish
+
+    // Intercept scroll-triggering user inputs to lock scroll without removing scrollbar gutter
+    const preventDefault = (e) => e.preventDefault();
+    const preventKeyScroll = (e) => {
+      const keys = ['ArrowDown', 'ArrowUp', ' ', 'Spacebar', 'PageDown', 'PageUp', 'Home', 'End'];
+      if (keys.includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+
+    if (appEl) {
+      appEl.addEventListener('wheel', preventDefault, { passive: false });
+      appEl.addEventListener('touchmove', preventDefault, { passive: false });
+    }
+    window.addEventListener('keydown', preventKeyScroll, { passive: false });
+
+    // Define cleanup routine
+    window.cleanupHomeLoadingScrollLock = () => {
+      if (appEl) {
+        appEl.removeEventListener('wheel', preventDefault);
+        appEl.removeEventListener('touchmove', preventDefault);
+      }
+      window.removeEventListener('keydown', preventKeyScroll);
+    };
+
+    const startTransition = () => {
+      const elapsed = Date.now() - loadStartTime;
+      const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
+
+      setTimeout(() => {
+        // Stop loading spinner
+        const circle = document.getElementById('home-cover-circle');
+        if (circle) {
+          circle.classList.remove('loading-circle');
+        }
+
+        // Reveal and focus in text elements with stagger effect
+        const title = document.getElementById('home-cover-title');
+        const subtitle = document.getElementById('home-cover-subtitle');
+        const desc = document.getElementById('home-cover-desc');
+        const scroll = document.getElementById('home-cover-scroll');
+
+        if (title) {
+          title.style.setProperty('--stagger', '0ms');
+          title.classList.remove('opacity-0', 'pointer-events-none');
+          title.classList.add('animate-focus-in');
+        }
+        if (subtitle) {
+          subtitle.style.setProperty('--stagger', '300ms');
+          subtitle.classList.remove('opacity-0', 'pointer-events-none');
+          subtitle.classList.add('animate-focus-in');
+        }
+        if (desc) {
+          desc.style.setProperty('--stagger', '600ms');
+          desc.classList.remove('opacity-0', 'pointer-events-none');
+          desc.classList.add('animate-focus-in');
+        }
+        if (scroll) {
+          scroll.style.setProperty('--stagger', '900ms');
+          scroll.classList.remove('opacity-0', 'pointer-events-none');
+          scroll.classList.add('animate-focus-in');
+        }
+
+        // Restore scroll interactions after animations are complete
+        setTimeout(() => {
+          if (typeof window.cleanupHomeLoadingScrollLock === 'function') {
+            window.cleanupHomeLoadingScrollLock();
+            window.cleanupHomeLoadingScrollLock = null;
+          }
+        }, 2100);
+      }, remaining);
+    };
+
+    const onAppLoaded = () => {
+      document.removeEventListener('app-loaded', onAppLoaded);
+      startTransition();
+    };
+
+    if (window.appLoaded) {
+      startTransition();
+    } else {
+      document.addEventListener('app-loaded', onAppLoaded);
+    }
+  }
 
   // Setup Carousel Interactions
 

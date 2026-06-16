@@ -12,17 +12,26 @@ import { renderHomeStage } from './js/stages/home.js';
 import { initCustomCursor } from './js/effects/cursor.js';
 
 // ==========================================
-// 이펙트 시스템 초기화
+// 이펙트 시스템 및 로드 라이프사이클 초기화
 // ==========================================
+window.appLoaded = false;
+
+function triggerAppLoaded() {
+  window.appLoaded = true;
+  document.dispatchEvent(new CustomEvent('app-loaded'));
+}
+
 function initEffects() {
   // Load Three.js dynamically using ES Modules
   import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js')
     .then(THREE => {
       window.THREE = THREE;
       initLiquidGlass();
+      triggerAppLoaded();
     })
     .catch(err => {
       console.warn('Three.js ES module failed to load, skipping WebGL effects', err);
+      triggerAppLoaded();
     });
 
   // Init cursor glow & interactions (no Three.js dependency)
@@ -155,44 +164,52 @@ function transitionPage(callback) {
   }, 400);
 }
 
+let isInitialLoad = true;
+
 export function setMode(newMode) {
-  transitionPage(() => {
+  const runMode = () => {
     if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
     const timerUI = document.getElementById('challenge-timer');
     if (timerUI) timerUI.style.display = 'none';
     removeProgressBar();
 
-  // Reset scroll lock and restore padding (home stage removes padding for snap scroll)
-  const appEl = document.getElementById('app');
-  const mainEl = document.querySelector('main');
-  if (appEl) {
-    appEl.style.overflowY = '';   // 인라인 스타일 제거 → Tailwind overflow-y-auto 복원
-    appEl.style.scrollSnapType = '';
-    appEl.style.scrollBehavior = '';
-    appEl.style.padding = '';
-    appEl.scrollTop = 0;
-  }
-  if (mainEl) {
-    mainEl.style.paddingTop = '';
-  }
-  const snapStyle = document.getElementById('home-snap-style');
-  if (snapStyle) snapStyle.remove();
+    // Clean up home screen loading scroll lock if active
+    if (typeof window.cleanupHomeLoadingScrollLock === 'function') {
+      window.cleanupHomeLoadingScrollLock();
+      window.cleanupHomeLoadingScrollLock = null;
+    }
 
-  state.mode = newMode;
-  updateNavUI(newMode);
+    // Reset scroll lock and restore padding (home stage removes padding for snap scroll)
+    const appEl = document.getElementById('app');
+    const mainEl = document.querySelector('main');
+    if (appEl) {
+      appEl.style.overflowY = '';   // 인라인 스타일 제거 → Tailwind overflow-y-auto 복원
+      appEl.style.scrollSnapType = '';
+      appEl.style.scrollBehavior = '';
+      appEl.style.padding = '';
+      appEl.scrollTop = 0;
+    }
+    if (mainEl) {
+      mainEl.style.paddingTop = '';
+    }
+    const snapStyle = document.getElementById('home-snap-style');
+    if (snapStyle) snapStyle.remove();
 
-  if (newMode === 'home') {
-    renderHomeStage();
-    requestAnimationFrame(() => refreshInteractions());
-  } else if (newMode === 'test') {
-    state.stageNumber = 1;
-    state.score = 0;
-    state.userHistory = [];
-    state.tutorialShown = { 1: false, 4: false, 9: false };
-    renderNextStage();
-  } else if (newMode === 'lab') {
-    renderColorLab(state.weakness);
-    requestAnimationFrame(() => refreshInteractions());
+    state.mode = newMode;
+    updateNavUI(newMode);
+
+    if (newMode === 'home') {
+      renderHomeStage();
+      requestAnimationFrame(() => refreshInteractions());
+    } else if (newMode === 'test') {
+      state.stageNumber = 1;
+      state.score = 0;
+      state.userHistory = [];
+      state.tutorialShown = { 1: false, 4: false, 9: false };
+      renderNextStage();
+    } else if (newMode === 'lab') {
+      renderColorLab(state.weakness);
+      requestAnimationFrame(() => refreshInteractions());
     } else if (newMode === 'challenge') {
       state.challengeScore = 0;
       state.challengeTotalScore = 0;
@@ -202,7 +219,14 @@ export function setMode(newMode) {
       renderChallengeIntro();
       requestAnimationFrame(() => refreshInteractions());
     }
-  });
+  };
+
+  if (isInitialLoad && newMode === 'home') {
+    isInitialLoad = false;
+    runMode();
+  } else {
+    transitionPage(runMode);
+  }
 }
 
 window.setMode = setMode;
