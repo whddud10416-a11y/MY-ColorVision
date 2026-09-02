@@ -683,21 +683,33 @@ input[type=range]:active::-moz-range-thumb {
 
 /* Nav button styling */
 nav button {
-    color: #8C857B !important;
+    color: #A39E96 !important;
     text-shadow: none !important;
     filter: none !important;
     -webkit-filter: none !important;
-    transition: all 0.2s ease-in-out;
+    transition: color 0.3s ease-in-out;
 }
 
 nav button:hover {
     color: #2C2C2C !important;
 }
 
-nav button.active-nav {
+nav button.active-nav,
+nav button[style*="drop-shadow"] {
     color: #2C2C2C !important;
-    background: rgba(60, 50, 40, 0.08) !important;
-    font-weight: 700 !important;
+    filter: none !important;
+}
+
+/* Hide Play button on mobile, show on desktop */
+@media (max-width: 767px) {
+    #nav-challenge {
+        display: none !important;
+    }
+}
+@media (min-width: 768px) {
+    #nav-challenge {
+        display: inline-block !important;
+    }
 }
 
 /* Film grain noise — hide */

@@ -48,19 +48,24 @@ function initEffects() {
 // 모드 설정 및 라우팅
 // ==========================================
 function updateNavUI(mode) {
+  const isMobile = window.innerWidth < 768;
   const navBar = document.querySelector('nav');
   if (navBar) {
-    navBar.style.display = 'flex';
+    if (isMobile) {
+      navBar.style.display = 'flex';
+    } else {
+      navBar.style.display = mode === 'home' ? 'none' : 'flex';
+    }
   }
 
-  const modes = ['home', 'test', 'lab'];
+  const modes = ['home', 'test', 'lab', 'challenge'];
   modes.forEach(m => {
     const btn = document.getElementById(`nav-${m}`);
     if (!btn) return;
     if (m === mode) {
-      btn.classList.add('active-nav');
+      btn.className = "text-xs sm:text-base font-bold transition-all text-stone-800 active-nav";
     } else {
-      btn.classList.remove('active-nav');
+      btn.className = "text-xs sm:text-base font-bold transition-all text-stone-400 hover:text-stone-800";
     }
   });
 }
