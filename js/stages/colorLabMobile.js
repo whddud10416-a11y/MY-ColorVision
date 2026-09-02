@@ -186,16 +186,22 @@ export function initMobileControls(core) {
       const count = (actR ? 1 : 0) + (actG ? 1 : 0) + (actB ? 1 : 0);
 
       if (count === 3) {
+        coneStates.R = 2;
+        coneStates.G = 2;
+        coneStates.B = 2;
         core.setTypeAndSeverity('achromato', 1.0);
         if (dockStatus) dockStatus.textContent = '전색맹';
       } else if (count === 2) {
         if (actR && actG) {
+          coneStates.R = 1; coneStates.G = 1; coneStates.B = 0;
           core.setTypeAndSeverity('redgreen', 0.5);
           if (dockStatus) dockStatus.textContent = '복합(적녹)';
         } else if (actR && actB) {
+          coneStates.R = 1; coneStates.B = 1; coneStates.G = 0;
           core.setTypeAndSeverity('redblue', 0.5);
           if (dockStatus) dockStatus.textContent = '복합(적청)';
         } else if (actG && actB) {
+          coneStates.G = 1; coneStates.B = 1; coneStates.R = 0;
           core.setTypeAndSeverity('greenblue', 0.5);
           if (dockStatus) dockStatus.textContent = '복합(녹청)';
         }
@@ -239,7 +245,7 @@ export function initMobileControls(core) {
     } else if (core.currentType === 'greenblue') {
       coneStates.G = 1; coneStates.B = 1;
     } else if (core.currentType === 'achromato') {
-      coneStates.R = 1; coneStates.G = 1; coneStates.B = 1;
+      coneStates.R = 2; coneStates.G = 2; coneStates.B = 2;
     }
     renderConeButtons();
 
