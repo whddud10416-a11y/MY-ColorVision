@@ -160,91 +160,91 @@ export function renderColorLab(initialWeakness) {
           
         </div>
 
-        <!-- Floating Action Button for Controls on Mobile (원형 아이콘 전용, 뷰포트 고정) -->
+        <!-- Floating Action Button for Controls on Mobile (원형 아이콘 전용, 뷰포트 고정, 페이드 인/아웃) -->
         <button id="mobile-control-fab"
-          class="fixed bottom-5 right-5 z-[9999] lg:hidden glow-button w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all hidden"
+          class="fixed bottom-5 right-5 z-[9999] lg:hidden glow-button w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 ease-out hidden opacity-0 scale-75 pointer-events-none"
           style="position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important;"
           aria-label="필터 조절">
           <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
         </button>
 
-        <!-- Mobile Compact Floating Control Dock (반투명 글래스형 슬림 플로팅 도크) -->
+        <!-- Mobile Compact Floating Control Dock (초슬림 반투명 글래스형 도크, 페이드 인/아웃) -->
         <div id="mobile-control-dock"
-          class="mobile-glass-dock fixed bottom-20 right-4 left-4 max-w-sm ml-auto mr-auto z-[9999] lg:hidden flex flex-col gap-2 transition-all duration-300 rounded-2xl p-3 shadow-xl hidden"
-          style="position: fixed !important; bottom: 84px !important; right: 16px !important; left: 16px !important; max-width: 380px !important; margin-left: auto !important; margin-right: auto !important; z-index: 9999 !important;">
+          class="mobile-glass-dock fixed bottom-4 right-3 left-3 max-w-[360px] ml-auto mr-auto z-[9999] lg:hidden flex flex-col gap-1.5 transition-all duration-300 ease-out rounded-2xl p-2 shadow-2xl hidden opacity-0 scale-95 translate-y-3 pointer-events-none"
+          style="position: fixed !important; bottom: 16px !important; right: 12px !important; left: 12px !important; max-width: 360px !important; margin-left: auto !important; margin-right: auto !important; z-index: 9999 !important;">
           
           <!-- Floating Intensity Slider Panel (버튼 누르면 열리는 슬라이더 패널) -->
-          <div id="mobile-slider-panel" class="mobile-glass-slider hidden p-3 rounded-2xl flex flex-col gap-2 animate-in mb-1">
-            <div class="flex justify-between items-center text-xs">
+          <div id="mobile-slider-panel" class="mobile-glass-slider hidden p-2.5 rounded-xl flex flex-col gap-1.5 animate-in mb-1">
+            <div class="flex justify-between items-center text-[11px]">
               <span class="font-bold text-stone-700">적용 강도</span>
-              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-200/80 px-2 py-0.5 rounded border border-stone-300/80">1.00x</span>
+              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-200/80 px-1.5 py-0.5 rounded text-[10px] border border-stone-300/80">1.00x</span>
             </div>
             <input type="range" min="0" max="2" step="0.01" value="1.0"
                    style="--val: 50; --fill-color: #78716c;"
-                   class="intensity-slider w-full h-2 rounded-lg appearance-none cursor-pointer bg-stone-200
-                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:!w-5 [&::-webkit-slider-thumb]:!h-5
-                          [&::-webkit-slider-thumb]:!-mt-[6px] [&::-webkit-slider-thumb]:!bg-stone-600 [&::-webkit-slider-thumb]:!rounded-full
-                          [&::-webkit-slider-thumb]:!shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+                   class="intensity-slider w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-stone-200
+                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:!w-4 [&::-webkit-slider-thumb]:!h-4
+                          [&::-webkit-slider-thumb]:!-mt-[5px] [&::-webkit-slider-thumb]:!bg-stone-600 [&::-webkit-slider-thumb]:!rounded-full
+                          [&::-webkit-slider-thumb]:!shadow-[0_2px_4px_rgba(0,0,0,0.25)]">
           </div>
 
           <!-- Main Floating Dock Inner Content -->
-          <div class="flex flex-col gap-2.5 w-full">
+          <div class="flex flex-col gap-1.5 w-full">
             
             <!-- Top Row: Mode Switch & Korean Status & Close -->
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center justify-between gap-1.5">
               <!-- Mode Toggle (체험 / 보정) -->
-              <div class="flex items-center p-0.5 bg-stone-300/60 rounded-xl">
-                <button id="mobile-mode-sim-btn" class="mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-rose-700 shadow-xs">
+              <div class="flex items-center p-0.5 bg-stone-300/60 rounded-lg">
+                <button id="mobile-mode-sim-btn" class="mode-simulate-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all bg-white text-rose-700 shadow-xs">
                   👁️ 체험
                 </button>
-                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-600 hover:text-stone-900">
+                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all text-stone-600 hover:text-stone-900">
                   ✨ 보정
                 </button>
               </div>
 
               <!-- Status Badge (순수 한글 표기, 말줄임표 제거) -->
               <div class="flex-1 text-center min-w-0 px-1">
-                <span id="mobile-dock-status" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/80 text-stone-800 border border-stone-300/70 whitespace-nowrap shadow-xs">
+                <span id="mobile-dock-status" class="inline-block px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/80 text-stone-800 border border-stone-300/70 whitespace-nowrap shadow-xs">
                   정상
                 </span>
               </div>
 
               <!-- Close/Minimize Button -->
-              <button id="mobile-dock-close" class="w-6 h-6 rounded-full bg-stone-300/70 hover:bg-stone-400 text-stone-600 text-xs font-bold flex items-center justify-center transition-colors" title="닫기">&times;</button>
+              <button id="mobile-dock-close" class="w-5 h-5 rounded-full bg-stone-300/70 hover:bg-stone-400 text-stone-600 text-[11px] font-bold flex items-center justify-center transition-colors" title="닫기">&times;</button>
             </div>
 
             <!-- Bottom Row: R, G, B Cones + Intensity Toggle (아이콘과 수치값만) + Reset (맨 우측으로 이동) -->
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-300/60">
+            <div class="flex items-center justify-between gap-1.5 pt-1 border-t border-stone-300/60">
               
               <!-- R, G, B Cone Buttons Group -->
-              <div class="flex items-center gap-1.5 sm:gap-2">
+              <div class="flex items-center gap-1.5">
                 <!-- R Button -->
-                <button id="dock-btn-r" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
+                <button id="dock-btn-r" class="dock-cone-btn w-8 h-8 rounded-full border border-rose-300 text-rose-500 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
                   <span class="text-xs font-black leading-none">R</span>
                 </button>
 
                 <!-- G Button -->
-                <button id="dock-btn-g" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
+                <button id="dock-btn-g" class="dock-cone-btn w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
                   <span class="text-xs font-black leading-none">G</span>
                 </button>
 
                 <!-- B Button -->
-                <button id="dock-btn-b" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
+                <button id="dock-btn-b" class="dock-cone-btn w-8 h-8 rounded-full border border-blue-300 text-blue-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
                   <span class="text-xs font-black leading-none">B</span>
                 </button>
               </div>
 
               <!-- Intensity Toggle Button (글자 "강도" 없이 아이콘 + 수치값만) -->
               <button id="mobile-intensity-toggle-btn"
-                class="py-1.5 px-3 rounded-xl border border-stone-300/90 bg-white/80 hover:bg-white text-xs font-bold text-stone-700 flex items-center gap-1.5 transition-all shadow-xs"
+                class="py-1 px-2.5 rounded-lg border border-stone-300/90 bg-white/80 hover:bg-white text-[11px] font-bold text-stone-700 flex items-center gap-1 transition-all shadow-xs"
                 title="강도 조절">
                 <svg class="w-3.5 h-3.5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                <span id="dock-intensity-text" class="text-xs font-bold text-stone-900">1.0x</span>
+                <span id="dock-intensity-text" class="text-[11px] font-bold text-stone-900">1.0x</span>
               </button>
 
               <!-- Reset Button (맨 우측으로 위치 변경) -->
               <button id="dock-btn-reset"
-                class="w-9 h-9 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-sm font-bold shadow-xs"
+                class="w-8 h-8 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-xs font-bold shadow-xs"
                 title="초기화 (정상)">
                 ↺
               </button>
@@ -293,16 +293,52 @@ export function renderColorLab(initialWeakness) {
   const dockIntensityText = document.getElementById("dock-intensity-text");
   const dockStatus = document.getElementById("mobile-dock-status");
 
-  if (fab && dock) {
-    fab.addEventListener("click", () => {
-      dock.classList.toggle("hidden");
-    });
+  function openDock() {
+    // Hide FAB with fade out
+    if (fab) {
+      fab.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+      fab.classList.add('opacity-0', 'scale-75', 'pointer-events-none');
+      setTimeout(() => {
+        if (fab.classList.contains('opacity-0')) {
+          fab.classList.add('hidden');
+        }
+      }, 300);
+    }
+
+    // Show Dock with fade in
+    if (dock) {
+      dock.classList.remove('hidden');
+      void dock.offsetWidth; // Force reflow
+      dock.classList.remove('opacity-0', 'scale-95', 'translate-y-3', 'pointer-events-none');
+      dock.classList.add('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
+    }
   }
-  if (dockClose && dock) {
-    dockClose.addEventListener("click", () => {
-      dock.classList.add("hidden");
-    });
+
+  function closeDock() {
+    // Hide Dock with fade out
+    if (dock) {
+      dock.classList.remove('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
+      dock.classList.add('opacity-0', 'scale-95', 'translate-y-3', 'pointer-events-none');
+      setTimeout(() => {
+        if (dock.classList.contains('opacity-0')) {
+          dock.classList.add('hidden');
+          if (sliderPanel) sliderPanel.classList.add('hidden');
+        }
+      }, 300);
+    }
+
+    // Show FAB with fade in
+    if (fab) {
+      fab.classList.remove('hidden');
+      void fab.offsetWidth; // Force reflow
+      fab.classList.remove('opacity-0', 'scale-75', 'pointer-events-none');
+      fab.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+    }
   }
+
+  if (fab) fab.addEventListener("click", openDock);
+  if (dockClose) dockClose.addEventListener("click", closeDock);
+
   if (intensityToggleBtn && sliderPanel) {
     intensityToggleBtn.addEventListener("click", () => {
       sliderPanel.classList.toggle("hidden");
@@ -320,39 +356,39 @@ export function renderColorLab(initialWeakness) {
 
     if (btnR) {
       if (coneStates.R === 1) {
-        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-500 bg-rose-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
-        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[8px] font-bold leading-none mt-0.5">약</span>`;
+        btnR.className = "dock-cone-btn w-8 h-8 rounded-full border border-rose-500 bg-rose-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
+        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[7px] font-bold leading-none mt-0.5">약</span>`;
       } else if (coneStates.R === 2) {
-        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-800 bg-rose-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-rose-300";
-        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
+        btnR.className = "dock-cone-btn w-8 h-8 rounded-full border border-rose-800 bg-rose-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-1.5 ring-rose-300";
+        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[7px] font-bold leading-none mt-0.5">맹</span>`;
       } else {
-        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
+        btnR.className = "dock-cone-btn w-8 h-8 rounded-full border border-rose-300 text-rose-500 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
         btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span>`;
       }
     }
 
     if (btnG) {
       if (coneStates.G === 1) {
-        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
-        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[8px] font-bold leading-none mt-0.5">약</span>`;
+        btnG.className = "dock-cone-btn w-8 h-8 rounded-full border border-emerald-500 bg-emerald-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
+        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[7px] font-bold leading-none mt-0.5">약</span>`;
       } else if (coneStates.G === 2) {
-        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-800 bg-emerald-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-emerald-300";
-        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
+        btnG.className = "dock-cone-btn w-8 h-8 rounded-full border border-emerald-800 bg-emerald-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-1.5 ring-emerald-300";
+        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[7px] font-bold leading-none mt-0.5">맹</span>`;
       } else {
-        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
+        btnG.className = "dock-cone-btn w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
         btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span>`;
       }
     }
 
     if (btnB) {
       if (coneStates.B === 1) {
-        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-500 bg-blue-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
-        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[8px] font-bold leading-none mt-0.5">약</span>`;
+        btnB.className = "dock-cone-btn w-8 h-8 rounded-full border border-blue-500 bg-blue-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
+        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[7px] font-bold leading-none mt-0.5">약</span>`;
       } else if (coneStates.B === 2) {
-        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-blue-300";
-        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
+        btnB.className = "dock-cone-btn w-8 h-8 rounded-full border border-blue-800 bg-blue-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-1.5 ring-blue-300";
+        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[7px] font-bold leading-none mt-0.5">맹</span>`;
       } else {
-        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
+        btnB.className = "dock-cone-btn w-8 h-8 rounded-full border border-blue-300 text-blue-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
         btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span>`;
       }
     }
@@ -646,11 +682,11 @@ export function renderColorLab(initialWeakness) {
     const mobCorBtn = document.getElementById("mobile-mode-cor-btn");
     if (mobSimBtn && mobCorBtn) {
       if (mode === 'simulate') {
-        mobSimBtn.className = "mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-rose-700 shadow-xs";
-        mobCorBtn.className = "mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-500 hover:text-stone-800";
+        mobSimBtn.className = "mode-simulate-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all bg-white text-rose-700 shadow-xs";
+        mobCorBtn.className = "mode-correct-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all text-stone-600 hover:text-stone-900";
       } else {
-        mobCorBtn.className = "mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-indigo-700 shadow-xs";
-        mobSimBtn.className = "mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-500 hover:text-stone-800";
+        mobCorBtn.className = "mode-correct-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all bg-white text-indigo-700 shadow-xs";
+        mobSimBtn.className = "mode-simulate-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all text-stone-600 hover:text-stone-900";
       }
     }
 
@@ -742,8 +778,14 @@ export function renderColorLab(initialWeakness) {
         if (headerTitle) headerTitle.classList.add("lg:text-2xl", "lg:mb-0");
         const headerBox = document.getElementById("lab-header-box");
         if (headerBox) headerBox.classList.add("lg:mb-2");
-        if (fab) fab.classList.remove("hidden");
-        if (dock) dock.classList.remove("hidden");
+        if (fab) {
+          fab.classList.remove("hidden", "opacity-0", "scale-75", "pointer-events-none");
+          fab.classList.add("opacity-100", "scale-100", "pointer-events-auto");
+        }
+        if (dock) {
+          dock.classList.add("hidden", "opacity-0", "scale-95", "translate-y-3", "pointer-events-none");
+          dock.classList.remove("opacity-100", "scale-100", "translate-y-0", "pointer-events-auto");
+        }
 
         adjustCanvasSize();
         applyCorrection();
