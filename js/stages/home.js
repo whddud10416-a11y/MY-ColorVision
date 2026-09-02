@@ -70,15 +70,27 @@ function renderMobileHome() {
 
       <!-- Main Title -->
       <h1 id="home-cover-title"
-        class="mb-6 sm:mb-8 text-4xl sm:text-6xl md:text-7xl font-bold text-stone-800 text-center w-full px-2 tracking-tight transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        class="mb-2 text-4xl sm:text-6xl md:text-7xl font-bold text-stone-800 text-center w-full px-2 tracking-tight transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
         style="font-family: 'Noto Serif KR', serif !important; line-height: 1.15; letter-spacing: calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">
         Color Vision
       </h1>
 
+      <p id="home-cover-subtitle"
+        class="text-stone-400 text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase mb-3 transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        style="--stagger: 150ms;">
+        색각 능력 진단 플랫폼
+      </p>
+
+      <p id="home-cover-desc"
+        class="text-stone-500 text-xs sm:text-sm max-w-xs mx-auto break-keep leading-relaxed mb-6 sm:mb-8 transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        style="--stagger: 300ms;">
+        색각 이상은 단순한 시력 문제가 아닌,<br>세상을 인지하는 또 다른 방식입니다.
+      </p>
+
       <!-- Mobile Action Buttons (Test & Lab only) -->
       <div id="home-cover-buttons"
         class="flex flex-col items-center justify-center gap-3 w-full max-w-xs transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
-        style="--stagger: 250ms;">
+        style="--stagger: 450ms;">
         <button onclick="window.setMode('test')"
           class="glow-button w-full py-3.5 px-6 rounded-full text-white font-bold text-base shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center">
           Test
@@ -107,6 +119,8 @@ function renderMobileHome() {
         if (circle) circle.classList.remove('loading-circle');
 
         const title = document.getElementById('home-cover-title');
+        const subtitle = document.getElementById('home-cover-subtitle');
+        const desc = document.getElementById('home-cover-desc');
         const buttons = document.getElementById('home-cover-buttons');
 
         if (title) {
@@ -114,8 +128,18 @@ function renderMobileHome() {
           title.classList.remove('opacity-0', 'pointer-events-none');
           title.classList.add('animate-focus-in');
         }
+        if (subtitle) {
+          subtitle.style.setProperty('--stagger', '150ms');
+          subtitle.classList.remove('opacity-0', 'pointer-events-none');
+          subtitle.classList.add('animate-focus-in');
+        }
+        if (desc) {
+          desc.style.setProperty('--stagger', '300ms');
+          desc.classList.remove('opacity-0', 'pointer-events-none');
+          desc.classList.add('animate-focus-in');
+        }
         if (buttons) {
-          buttons.style.setProperty('--stagger', '250ms');
+          buttons.style.setProperty('--stagger', '450ms');
           buttons.classList.remove('opacity-0', 'pointer-events-none');
           buttons.classList.add('animate-focus-in');
         }

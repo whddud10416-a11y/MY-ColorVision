@@ -156,95 +156,89 @@ export function renderColorLab(initialWeakness) {
           
         </div>
 
-        <!-- Floating Action Button for Controls on Mobile (우측 하단 조절 버튼) -->
+        <!-- Floating Action Button for Controls on Mobile (원형 아이콘만 남김) -->
         <button id="mobile-control-fab"
-          class="fixed bottom-6 right-6 z-40 lg:hidden glow-button py-3 px-4.5 rounded-full text-white font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
-          <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-          <span>필터 조절</span>
+          class="fixed bottom-5 right-5 z-40 lg:hidden glow-button w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+          aria-label="필터 조절">
+          <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
         </button>
 
-        <!-- Mobile Controls Popup Modal (우측 하단 버튼 클릭 시 페이지 위에 뜨는 조절 팝업) -->
-        <div id="mobile-control-modal" class="fixed inset-0 z-50 hidden lg:hidden">
-          <!-- Backdrop -->
-          <div id="modal-backdrop" class="absolute inset-0 bg-stone-900/50 backdrop-blur-xs transition-opacity"></div>
+        <!-- Mobile Compact Floating Control Dock (배경을 가리지 않는 하단 슬림 컨트롤 도크) -->
+        <div id="mobile-control-dock" class="fixed bottom-20 right-4 left-4 max-w-sm ml-auto mr-auto z-40 lg:hidden flex flex-col gap-2 transition-all duration-300">
           
-          <!-- Bottom Sheet / Modal Card -->
-          <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-[#FAF7F2] rounded-t-[2rem] p-5 sm:p-6 shadow-2xl border-t border-stone-300 overflow-y-auto z-10 flex flex-col gap-3.5">
+          <!-- Floating Intensity Slider Panel (버튼 누르면 열리는 슬라이더 패널) -->
+          <div id="mobile-slider-panel" class="hidden p-3 bg-white/95 backdrop-blur-md rounded-2xl border border-stone-300/90 shadow-xl flex flex-col gap-2 animate-in">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-bold text-stone-600">적용 강도 조절</span>
+              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">1.00x</span>
+            </div>
+            <input type="range" min="0" max="2" step="0.01" value="1.0"
+                   style="--val: 50; --fill-color: #78716c;"
+                   class="intensity-slider w-full h-2 rounded-lg appearance-none cursor-pointer bg-stone-200
+                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:!w-5 [&::-webkit-slider-thumb]:!h-5
+                          [&::-webkit-slider-thumb]:!-mt-[6px] [&::-webkit-slider-thumb]:!bg-stone-600 [&::-webkit-slider-thumb]:!rounded-full
+                          [&::-webkit-slider-thumb]:!shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+          </div>
+
+          <!-- Main Floating Dock Card -->
+          <div class="bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-stone-300/80 flex flex-col gap-2.5">
             
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center pb-2 border-b border-stone-200">
+            <!-- Top Row: Mode Switch & Status Badge & Close -->
+            <div class="flex items-center justify-between gap-2">
+              <!-- Mode Toggle (체험 / 보정) -->
+              <div class="flex items-center p-0.5 bg-stone-200/70 rounded-xl">
+                <button id="mobile-mode-sim-btn" class="mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-rose-700 shadow-xs">
+                  👁️ 체험
+                </button>
+                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-500 hover:text-stone-800">
+                  ✨ 보정
+                </button>
+              </div>
+
+              <!-- Status Badge -->
+              <div class="flex-1 text-center min-w-0">
+                <span id="mobile-dock-status" class="inline-block truncate max-w-full px-2 py-0.5 rounded-full text-[11px] font-bold bg-stone-100 text-stone-700 border border-stone-200/80">
+                  정상 (Original)
+                </span>
+              </div>
+
+              <!-- Close/Minimize Button -->
+              <button id="mobile-dock-close" class="w-6 h-6 rounded-full bg-stone-200/80 hover:bg-stone-300 text-stone-500 text-xs font-bold flex items-center justify-center transition-colors">&times;</button>
+            </div>
+
+            <!-- Bottom Row: R, G, B Cone Buttons + Intensity Button -->
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200/60">
+              
+              <!-- R, G, B Cone Buttons Group -->
               <div class="flex items-center gap-2">
-                <span class="text-lg">🎨</span>
-                <h3 class="display-font text-base font-bold text-stone-800">색각 필터 및 강도 조절</h3>
+                <!-- R Button -->
+                <button id="dock-btn-r" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-rose-50/50 hover:bg-rose-100/60 flex flex-col items-center justify-center transition-all cursor-pointer select-none">
+                  <span class="text-xs font-black leading-none">R</span>
+                </button>
+
+                <!-- G Button -->
+                <button id="dock-btn-g" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-100/60 flex flex-col items-center justify-center transition-all cursor-pointer select-none">
+                  <span class="text-xs font-black leading-none">G</span>
+                </button>
+
+                <!-- B Button -->
+                <button id="dock-btn-b" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-blue-50/50 hover:bg-blue-100/60 flex flex-col items-center justify-center transition-all cursor-pointer select-none">
+                  <span class="text-xs font-black leading-none">B</span>
+                </button>
+
+                <!-- Reset to Normal (↺) Button -->
+                <button id="dock-btn-reset" class="w-8 h-8 rounded-full border border-stone-300 text-stone-400 hover:text-stone-700 hover:bg-stone-100 flex items-center justify-center transition-all text-xs" title="초기화 (정상)">
+                  ↺
+                </button>
               </div>
-              <button id="modal-close-btn" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold flex items-center justify-center text-sm transition-colors">&times;</button>
+
+              <!-- Intensity Slider Open/Close Button -->
+              <button id="mobile-intensity-toggle-btn" class="py-1.5 px-3 rounded-xl border border-stone-300 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 flex items-center gap-1.5 transition-all shadow-xs">
+                <svg class="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span>강도 <b id="dock-intensity-text" class="text-stone-900">1.0x</b></span>
+              </button>
+
             </div>
-
-            <!-- Mode Selector inside Modal -->
-            <div class="p-3 bg-white/80 rounded-2xl border border-stone-200/70 shadow-xs">
-              <p class="text-xs font-bold text-stone-500 mb-2">모드 선택</p>
-              <div class="flex flex-col gap-2">
-                <div class="mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]">
-                  <div class="bg-rose-100 p-1.5 rounded-full text-base">👁️</div>
-                  <div>
-                    <h4 class="text-xs font-black text-rose-700">시각 체험 모드</h4>
-                    <p class="text-[10px] text-rose-500 mt-0.5 break-keep">색각 이상을 가진 분들의 시야 시뮬레이션</p>
-                  </div>
-                </div>
-                
-                <div class="mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100">
-                  <div class="bg-indigo-100 p-1.5 rounded-full text-base">✨</div>
-                  <div>
-                    <h4 class="text-xs font-black text-indigo-700">색상 보정 모드</h4>
-                    <p class="text-[10px] text-indigo-500 mt-0.5 break-keep">인지 가능한 영역으로 강제 교정</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Presets inside Modal -->
-            <div class="p-3 bg-white/80 rounded-2xl border border-stone-200/70 shadow-xs">
-              <p class="text-xs font-bold text-stone-500 mb-2">색각 이상 유형 프리셋</p>
-              <div class="flex flex-col gap-1.5">
-                <button class="preset-btn py-1.5 px-3 rounded-lg font-bold text-xs border transition-all w-full ${currentType === 'default' ? 'bg-stone-400 text-white border-stone-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="default" data-severity="0">정상 (Original)</button>
-                
-                <div class="grid grid-cols-2 gap-1.5">
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'protan' && currentSeverity === 0.5 ? 'bg-rose-600 text-white border-rose-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="protan" data-severity="0.5">제1색각 (적색약)</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'protan' && currentSeverity === 1.0 ? 'bg-rose-800 text-white border-rose-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="protan" data-severity="1.0">제1색각 (적색맹)</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'deutan' && currentSeverity === 0.5 ? 'bg-green-600 text-white border-green-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="deutan" data-severity="0.5">제2색각 (녹색약)</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'deutan' && currentSeverity === 1.0 ? 'bg-green-800 text-white border-green-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="deutan" data-severity="1.0">제2색각 (녹색맹)</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'tritan' && currentSeverity === 0.5 ? 'bg-blue-600 text-white border-blue-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="tritan" data-severity="0.5">제3색각 (청색약)</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'tritan' && currentSeverity === 1.0 ? 'bg-blue-800 text-white border-blue-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="tritan" data-severity="1.0">제3색각 (청색맹)</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'achromato' && currentSeverity === 0.5 ? 'bg-gray-500 text-white border-gray-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="achromato" data-severity="0.5">전색약</button>
-                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'achromato' && currentSeverity === 1.0 ? 'bg-gray-700 text-white border-gray-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="achromato" data-severity="1.0">전색맹</button>
-                </div>
-
-                <div class="grid grid-cols-3 gap-1.5 mt-0.5">
-                  <button class="preset-btn py-1.5 px-1 rounded-lg font-bold text-[10px] border transition-all ${currentType === 'redgreen' ? 'bg-orange-600 text-white border-orange-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="redgreen" data-severity="0.5">복합(적녹)</button>
-                  <button class="preset-btn py-1.5 px-1 rounded-lg font-bold text-[10px] border transition-all ${currentType === 'redblue' ? 'bg-fuchsia-600 text-white border-fuchsia-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="redblue" data-severity="0.5">복합(적청)</button>
-                  <button class="preset-btn py-1.5 px-1 rounded-lg font-bold text-[10px] border transition-all ${currentType === 'greenblue' ? 'bg-teal-600 text-white border-teal-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="greenblue" data-severity="0.5">복합(녹청)</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Intensity Slider inside Modal -->
-            <div class="p-3 bg-white/80 rounded-2xl border border-stone-200/70 shadow-xs">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-xs font-bold text-stone-500">적용 강도</span>
-                <span class="intensity-val display-font text-stone-600 font-bold text-xs bg-stone-200 px-2.5 py-0.5 rounded-lg border border-stone-300">1.0x</span>
-              </div>
-              <input type="range" min="0" max="2" step="0.01" value="1.0" 
-                     style="--val: 50; --fill-color: #78716c;"
-                     class="intensity-slider w-full h-2 rounded-lg appearance-none cursor-pointer touch-none bg-stone-200 
-                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:!w-6 [&::-webkit-slider-thumb]:!h-6 
-                            [&::-webkit-slider-thumb]:!-mt-[8px] [&::-webkit-slider-thumb]:!bg-stone-500 [&::-webkit-slider-thumb]:!rounded-full 
-                            [&::-webkit-slider-thumb]:!shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
-            </div>
-
-            <!-- Done Button -->
-            <button id="modal-done-btn" class="glow-button w-full py-3 rounded-xl text-white font-bold text-sm shadow-sm flex justify-center items-center">
-              완료 (닫기)
-            </button>
 
           </div>
         </div>
@@ -274,28 +268,201 @@ export function renderColorLab(initialWeakness) {
   const modeCorrectBtns = document.querySelectorAll(".mode-correct-btn");
   const resultLabel = document.getElementById("result-label");
 
-  // Mobile modal controls
+  // Mobile Floating Dock & FAB Elements
   const fab = document.getElementById("mobile-control-fab");
-  const modal = document.getElementById("mobile-control-modal");
-  const backdrop = document.getElementById("modal-backdrop");
-  const closeBtn = document.getElementById("modal-close-btn");
-  const doneBtn = document.getElementById("modal-done-btn");
+  const dock = document.getElementById("mobile-control-dock");
+  const dockClose = document.getElementById("mobile-dock-close");
+  const intensityToggleBtn = document.getElementById("mobile-intensity-toggle-btn");
+  const sliderPanel = document.getElementById("mobile-slider-panel");
+  const dockIntensityText = document.getElementById("dock-intensity-text");
+  const dockStatus = document.getElementById("mobile-dock-status");
 
-  if (fab && modal) {
-    fab.addEventListener("click", () => modal.classList.remove("hidden"));
+  if (fab && dock) {
+    fab.addEventListener("click", () => {
+      dock.classList.toggle("hidden");
+    });
   }
-  if (closeBtn && modal) {
-    closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+  if (dockClose && dock) {
+    dockClose.addEventListener("click", () => {
+      dock.classList.add("hidden");
+    });
   }
-  if (doneBtn && modal) {
-    doneBtn.addEventListener("click", () => modal.classList.add("hidden"));
+  if (intensityToggleBtn && sliderPanel) {
+    intensityToggleBtn.addEventListener("click", () => {
+      sliderPanel.classList.toggle("hidden");
+    });
   }
-  if (backdrop && modal) {
-    backdrop.addEventListener("click", () => modal.classList.add("hidden"));
+
+  // R, G, B Cone State Tracker
+  // 0: Off (정상), 1: 약 (0.5), 2: 맹 (1.0)
+  let coneStates = { R: 0, G: 0, B: 0 };
+
+  function renderConeButtons() {
+    const btnR = document.getElementById("dock-btn-r");
+    const btnG = document.getElementById("dock-btn-g");
+    const btnB = document.getElementById("dock-btn-b");
+
+    if (btnR) {
+      if (coneStates.R === 1) {
+        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-500 bg-rose-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
+        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[8px] font-bold leading-none mt-0.5">약</span>`;
+      } else if (coneStates.R === 2) {
+        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-800 bg-rose-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-rose-300";
+        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
+      } else {
+        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-rose-50/50 hover:bg-rose-100/60 flex flex-col items-center justify-center transition-all cursor-pointer";
+        btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span>`;
+      }
+    }
+
+    if (btnG) {
+      if (coneStates.G === 1) {
+        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
+        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[8px] font-bold leading-none mt-0.5">약</span>`;
+      } else if (coneStates.G === 2) {
+        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-800 bg-emerald-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-emerald-300";
+        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
+      } else {
+        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-100/60 flex flex-col items-center justify-center transition-all cursor-pointer";
+        btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span>`;
+      }
+    }
+
+    if (btnB) {
+      if (coneStates.B === 1) {
+        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-500 bg-blue-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm";
+        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[8px] font-bold leading-none mt-0.5">약</span>`;
+      } else if (coneStates.B === 2) {
+        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-blue-300";
+        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
+      } else {
+        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-blue-50/50 hover:bg-blue-100/60 flex flex-col items-center justify-center transition-all cursor-pointer";
+        btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span>`;
+      }
+    }
+  }
+
+  function updateFromConeStates() {
+    const actR = coneStates.R > 0;
+    const actG = coneStates.G > 0;
+    const actB = coneStates.B > 0;
+    const count = (actR ? 1 : 0) + (actG ? 1 : 0) + (actB ? 1 : 0);
+
+    if (count === 3) {
+      // 전체 다 선택 시: 전색맹
+      currentType = 'achromato';
+      currentSeverity = 1.0;
+      if (dockStatus) dockStatus.textContent = '전색맹';
+    } else if (count === 2) {
+      // 2개 조합: 적녹 / 적청 / 녹청
+      if (actR && actG) {
+        currentType = 'redgreen';
+        currentSeverity = 0.5;
+        if (dockStatus) dockStatus.textContent = '복합 (적녹)';
+      } else if (actR && actB) {
+        currentType = 'redblue';
+        currentSeverity = 0.5;
+        if (dockStatus) dockStatus.textContent = '복합 (적청)';
+      } else if (actG && actB) {
+        currentType = 'greenblue';
+        currentSeverity = 0.5;
+        if (dockStatus) dockStatus.textContent = '복합 (녹청)';
+      }
+    } else if (count === 1) {
+      // 1개 단독: 1번 누르면 색약(0.5), 한번 더 누르면 색맹(1.0)
+      if (actR) {
+        currentType = 'protan';
+        currentSeverity = (coneStates.R === 2) ? 1.0 : 0.5;
+        if (dockStatus) dockStatus.textContent = (coneStates.R === 2) ? '제1색각 (적색맹)' : '제1색각 (적색약)';
+      } else if (actG) {
+        currentType = 'deutan';
+        currentSeverity = (coneStates.G === 2) ? 1.0 : 0.5;
+        if (dockStatus) dockStatus.textContent = (coneStates.G === 2) ? '제2색각 (녹색맹)' : '제2색각 (녹색약)';
+      } else if (actB) {
+        currentType = 'tritan';
+        currentSeverity = (coneStates.B === 2) ? 1.0 : 0.5;
+        if (dockStatus) dockStatus.textContent = (coneStates.B === 2) ? '제3색각 (청색맹)' : '제3색각 (청색약)';
+      }
+    } else {
+      // 전체 해제: 정상
+      currentType = 'default';
+      currentSeverity = 0;
+      if (dockStatus) dockStatus.textContent = '정상 (Original)';
+    }
+
+    renderConeButtons();
+    updateActiveButton();
+    applyCorrection();
+  }
+
+  function syncConeStatesFromCurrent() {
+    if (currentType === 'protan') {
+      coneStates = { R: currentSeverity === 1.0 ? 2 : 1, G: 0, B: 0 };
+    } else if (currentType === 'deutan') {
+      coneStates = { R: 0, G: currentSeverity === 1.0 ? 2 : 1, B: 0 };
+    } else if (currentType === 'tritan') {
+      coneStates = { R: 0, G: 0, B: currentSeverity === 1.0 ? 2 : 1 };
+    } else if (currentType === 'redgreen') {
+      coneStates = { R: 1, G: 1, B: 0 };
+    } else if (currentType === 'redblue') {
+      coneStates = { R: 1, G: 0, B: 1 };
+    } else if (currentType === 'greenblue') {
+      coneStates = { R: 0, G: 1, B: 1 };
+    } else if (currentType === 'achromato') {
+      coneStates = { R: 1, G: 1, B: 1 };
+    } else {
+      coneStates = { R: 0, G: 0, B: 0 };
+    }
+    renderConeButtons();
+    if (dockStatus) {
+      const map = {
+        'default': '정상 (Original)',
+        'protan': currentSeverity === 1.0 ? '제1색각 (적색맹)' : '제1색각 (적색약)',
+        'deutan': currentSeverity === 1.0 ? '제2색각 (녹색맹)' : '제2색각 (녹색약)',
+        'tritan': currentSeverity === 1.0 ? '제3색각 (청색맹)' : '제3색각 (청색약)',
+        'redgreen': '복합 (적녹)',
+        'redblue': '복합 (적청)',
+        'greenblue': '복합 (녹청)',
+        'achromato': '전색맹'
+      };
+      dockStatus.textContent = map[currentType] || '정상 (Original)';
+    }
+  }
+
+  // Attach R, G, B and Reset click listeners
+  const btnR = document.getElementById("dock-btn-r");
+  const btnG = document.getElementById("dock-btn-g");
+  const btnB = document.getElementById("dock-btn-b");
+  const btnReset = document.getElementById("dock-btn-reset");
+
+  if (btnR) {
+    btnR.addEventListener("click", () => {
+      coneStates.R = (coneStates.R + 1) % 3;
+      updateFromConeStates();
+    });
+  }
+  if (btnG) {
+    btnG.addEventListener("click", () => {
+      coneStates.G = (coneStates.G + 1) % 3;
+      updateFromConeStates();
+    });
+  }
+  if (btnB) {
+    btnB.addEventListener("click", () => {
+      coneStates.B = (coneStates.B + 1) % 3;
+      updateFromConeStates();
+    });
+  }
+  if (btnReset) {
+    btnReset.addEventListener("click", () => {
+      coneStates = { R: 0, G: 0, B: 0 };
+      updateFromConeStates();
+    });
   }
 
   // Initial UI state update based on user test results
   updateActiveButton();
+  syncConeStatesFromCurrent();
   setMode(currentMode);
 
   // Dynamic canvas sizing for Desktop (PC) without causing page scrolling
@@ -427,10 +594,14 @@ export function renderColorLab(initialWeakness) {
     currentMode = mode;
     if (mode === 'simulate') {
        modeSimulateBtns.forEach(btn => {
-         btn.className = "mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
+         if (btn.id !== 'mobile-mode-sim-btn') {
+           btn.className = "mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
+         }
        });
        modeCorrectBtns.forEach(btn => {
-         btn.className = "mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50";
+         if (btn.id !== 'mobile-mode-cor-btn') {
+           btn.className = "mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50";
+         }
        });
        if (resultLabel) {
          resultLabel.textContent = 'Simulation';
@@ -438,16 +609,33 @@ export function renderColorLab(initialWeakness) {
        }
     } else {
        modeCorrectBtns.forEach(btn => {
-         btn.className = "mode-correct-btn bg-indigo-50 border-2 border-indigo-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
+         if (btn.id !== 'mobile-mode-cor-btn') {
+           btn.className = "mode-correct-btn bg-indigo-50 border-2 border-indigo-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
+         }
        });
        modeSimulateBtns.forEach(btn => {
-         btn.className = "mode-simulate-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-rose-50";
+         if (btn.id !== 'mobile-mode-sim-btn') {
+           btn.className = "mode-simulate-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-rose-50";
+         }
        });
        if (resultLabel) {
          resultLabel.textContent = 'Daltonized';
          resultLabel.className = 'text-indigo-600 text-xs font-bold mb-2 tracking-wider uppercase display-font';
        }
     }
+
+    const mobSimBtn = document.getElementById("mobile-mode-sim-btn");
+    const mobCorBtn = document.getElementById("mobile-mode-cor-btn");
+    if (mobSimBtn && mobCorBtn) {
+      if (mode === 'simulate') {
+        mobSimBtn.className = "mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-rose-700 shadow-xs";
+        mobCorBtn.className = "mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-500 hover:text-stone-800";
+      } else {
+        mobCorBtn.className = "mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-indigo-700 shadow-xs";
+        mobSimBtn.className = "mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-500 hover:text-stone-800";
+      }
+    }
+
     applyCorrection();
   }
 
@@ -459,6 +647,7 @@ export function renderColorLab(initialWeakness) {
       currentType = e.target.dataset.type;
       currentSeverity = parseFloat(e.target.dataset.severity);
       updateActiveButton();
+      syncConeStatesFromCurrent();
       applyCorrection();
     });
   });
@@ -467,6 +656,7 @@ export function renderColorLab(initialWeakness) {
     slider.addEventListener("input", (e) => {
       customIntensity = parseFloat(e.target.value);
       intensityVals.forEach(val => val.textContent = customIntensity.toFixed(2) + "x");
+      if (dockIntensityText) dockIntensityText.textContent = customIntensity.toFixed(1) + "x";
       
       sliders.forEach(s => {
         if (s !== e.target) s.value = customIntensity;
@@ -534,6 +724,7 @@ export function renderColorLab(initialWeakness) {
         if (headerTitle) headerTitle.classList.add("lg:text-2xl", "lg:mb-0");
         const headerBox = document.getElementById("lab-header-box");
         if (headerBox) headerBox.classList.add("lg:mb-2");
+        if (dock) dock.classList.remove("hidden");
 
         adjustCanvasSize();
         applyCorrection();

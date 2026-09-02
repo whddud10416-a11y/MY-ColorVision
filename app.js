@@ -48,14 +48,9 @@ function initEffects() {
 // 모드 설정 및 라우팅
 // ==========================================
 function updateNavUI(mode) {
-  const isMobile = window.innerWidth < 768;
   const navBar = document.querySelector('nav');
   if (navBar) {
-    if (isMobile) {
-      navBar.style.display = 'flex';
-    } else {
-      navBar.style.display = mode === 'home' ? 'none' : 'flex';
-    }
+    navBar.style.display = mode === 'home' ? 'none' : 'flex';
   }
 
   const modes = ['home', 'test', 'lab', 'challenge'];
