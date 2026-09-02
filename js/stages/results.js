@@ -372,8 +372,9 @@ export function renderFinalScore() {
 
   html += `
       </div>
-      <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8 pb-12 w-full max-w-4xl mx-auto px-4">
-        <button onclick="${retryAction}" class="glow-button px-8 sm:px-14 py-4 sm:py-5 rounded-2xl sm:rounded-[1.5rem] text-white font-bold text-lg sm:text-xl w-full sm:w-auto flex justify-center items-center">${retryText}</button>
+      <div class="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mt-8 pb-12 w-full max-w-xl mx-auto px-4">
+        <button onclick="window.setMode('home')" class="w-full sm:w-auto px-8 py-3.5 sm:py-4 rounded-full text-stone-700 hover:text-stone-900 font-bold text-base border border-stone-300 bg-white/80 hover:bg-white shadow-xs transition-all flex justify-center items-center">홈으로</button>
+        <button onclick="${retryAction}" class="glow-button w-full sm:w-auto px-8 sm:px-12 py-3.5 sm:py-4 rounded-full text-white font-bold text-base sm:text-lg shadow-sm flex justify-center items-center">${retryText}</button>
       </div>
   `;
   container.innerHTML = html;

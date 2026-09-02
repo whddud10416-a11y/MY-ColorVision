@@ -50,17 +50,17 @@ function initEffects() {
 function updateNavUI(mode) {
   const navBar = document.querySelector('nav');
   if (navBar) {
-    navBar.style.display = mode === 'home' ? 'none' : 'flex';
+    navBar.style.display = 'flex';
   }
 
-  const modes = ['home', 'test', 'lab', 'challenge'];
+  const modes = ['home', 'test', 'lab'];
   modes.forEach(m => {
     const btn = document.getElementById(`nav-${m}`);
     if (!btn) return;
     if (m === mode) {
-      btn.className = "text-sm sm:text-base font-bold transition-all text-stone-800";
+      btn.classList.add('active-nav');
     } else {
-      btn.className = "text-sm sm:text-base font-bold transition-all text-stone-400 hover:text-stone-800";
+      btn.classList.remove('active-nav');
     }
   });
 }
@@ -177,6 +177,12 @@ export function setMode(newMode) {
     if (typeof window.cleanupHomeLoadingScrollLock === 'function') {
       window.cleanupHomeLoadingScrollLock();
       window.cleanupHomeLoadingScrollLock = null;
+    }
+
+    // Clean up Color Lab resize listeners if active
+    if (typeof window.cleanupColorLab === 'function') {
+      window.cleanupColorLab();
+      window.cleanupColorLab = null;
     }
 
     // Reset scroll lock and restore padding (home stage removes padding for snap scroll)

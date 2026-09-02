@@ -15,23 +15,23 @@ export function renderColorSortStage() {
       <div class="wide-container max-w-6xl mx-auto flex flex-col items-center">
         
         <!-- Header -->
-        <div class="text-center mb-8 sm:mb-10 lg:mb-12 w-full animate-in" style="--stagger: 0ms">
-          <div class="stage-badge mx-auto mb-4 sm:mb-5">
+        <div class="text-center mb-4 sm:mb-8 lg:mb-10 w-full animate-in" style="--stagger: 0ms">
+          <div class="stage-badge mx-auto mb-2 sm:mb-4">
             <span class="display-font">Step ${stageNum}</span>
             <span class="text-stone-300">/</span>
             <span class="display-font">Step ${totalStages}</span>
           </div>
-          <h2 class="display-font text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-stone-800 mb-4 tracking-tight break-keep">${theme.name}</h2>
-          <p class="text-stone-500 text-sm sm:text-base font-medium break-keep mb-2">${theme.desc}</p>
-          <p class="text-stone-400 text-xs sm:text-sm break-keep">* 명도나 채도가 아닌 '색상(Hue)'의 자연스러운 흐름을 맞추는 테스트입니다.</p>
+          <h2 class="display-font text-xl sm:text-3xl lg:text-4xl font-bold text-stone-800 mb-2 sm:mb-3 tracking-tight break-keep">${theme.name}</h2>
+          <p class="text-stone-500 text-xs sm:text-base font-medium break-keep mb-1">${theme.desc}</p>
+          <p class="text-stone-400 text-[11px] sm:text-xs break-keep">💡 큐브를 터치해 서로 교환하거나 직접 드래그하여 순서를 맞추세요.</p>
           ${isChallenge && state.weakness !== 'default' ? '<p class="text-indigo-600 text-xs sm:text-sm font-bold mt-2">✨ 취약 색각 분석 결과에 따른 맞춤형 보정 필터가 적용되었습니다.</p>' : ''}
         </div>
 
         <!-- Color Cubes — Wide -->
-        <div id="sort-box" class="flex w-full max-w-5xl justify-between gap-2 sm:gap-3 lg:gap-4 mb-8 sm:mb-10 lg:mb-12 animate-scale-in" style="--stagger: 150ms"></div>
+        <div id="sort-box" class="flex w-full max-w-5xl justify-between gap-1.5 sm:gap-3 lg:gap-4 mb-6 sm:mb-8 lg:mb-10 animate-scale-in" style="--stagger: 150ms"></div>
 
         <!-- Confirm Button -->
-        <button id="confirm-sort-btn" class="glow-button w-full max-w-md mx-auto py-3 sm:py-4 rounded-2xl sm:rounded-[1.5rem] font-bold text-lg sm:text-xl lg:text-2xl text-white animate-in flex justify-center items-center" style="--stagger: 350ms">
+        <button id="confirm-sort-btn" class="glow-button w-full max-w-md mx-auto py-3.5 sm:py-4 rounded-2xl sm:rounded-full font-bold text-base sm:text-xl text-white animate-in flex justify-center items-center shadow-sm" style="--stagger: 350ms">
           정렬 완료
         </button>
         

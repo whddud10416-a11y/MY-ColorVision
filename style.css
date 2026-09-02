@@ -519,14 +519,13 @@ input[type=range]:active::-moz-range-thumb {
 /* Color Display — Horizontal Side-by-Side */
 .color-display-row {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    flex-direction: row;
+    gap: 0.75rem;
     width: 100%;
 }
 
 @media (min-width: 768px) {
     .color-display-row {
-        flex-direction: row;
         gap: 1.5rem;
     }
 }
@@ -682,22 +681,23 @@ input[type=range]:active::-moz-range-thumb {
     }
 }
 
-/* Nav text override (JS sets text-white/text-slate-500) */
+/* Nav button styling */
 nav button {
-    color: #A39E96 !important;
+    color: #8C857B !important;
     text-shadow: none !important;
     filter: none !important;
     -webkit-filter: none !important;
-    transition: color 0.3s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
 
 nav button:hover {
     color: #2C2C2C !important;
 }
 
-nav button.active-nav,
-nav button[style*="drop-shadow"] {
-    filter: none !important;
+nav button.active-nav {
+    color: #2C2C2C !important;
+    background: rgba(60, 50, 40, 0.08) !important;
+    font-weight: 700 !important;
 }
 
 /* Film grain noise — hide */
