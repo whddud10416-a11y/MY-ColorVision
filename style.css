@@ -726,6 +726,9 @@ nav button[style*="drop-shadow"] {
     backdrop-filter: blur(20px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.65) !important;
     box-shadow: 0 12px 40px rgba(44, 44, 44, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    width: -moz-fit-content !important;
+    width: fit-content !important;
+    max-width: 90vw !important;
 }
 
 .mobile-glass-slider {

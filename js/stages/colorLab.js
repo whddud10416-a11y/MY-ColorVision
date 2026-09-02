@@ -168,16 +168,16 @@ export function renderColorLab(initialWeakness) {
           <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
         </button>
 
-        <!-- Mobile Compact Floating Control Dock (초슬림 반투명 글래스형 도크, 페이드 인/아웃) -->
+        <!-- Mobile Compact Floating Control Dock (초슬림 반투명 글래스형 도크, 좌우 길이 컴팩트화) -->
         <div id="mobile-control-dock"
-          class="mobile-glass-dock fixed bottom-4 right-3 left-3 max-w-[360px] ml-auto mr-auto z-[9999] lg:hidden flex flex-col gap-1.5 transition-all duration-300 ease-out rounded-2xl p-2 shadow-2xl hidden opacity-0 scale-95 translate-y-3 pointer-events-none"
-          style="position: fixed !important; bottom: 16px !important; right: 12px !important; left: 12px !important; max-width: 360px !important; margin-left: auto !important; margin-right: auto !important; z-index: 9999 !important;">
+          class="mobile-glass-dock fixed z-[9999] lg:hidden flex flex-col gap-1.5 transition-all duration-300 ease-out rounded-2xl p-2 shadow-2xl hidden opacity-0 scale-95 translate-y-3 pointer-events-none"
+          style="position: fixed !important; bottom: 16px !important; left: 0 !important; right: 0 !important; margin-left: auto !important; margin-right: auto !important; width: fit-content !important; min-width: 240px !important; max-width: 90vw !important; z-index: 9999 !important;">
           
           <!-- Floating Intensity Slider Panel (버튼 누르면 열리는 슬라이더 패널) -->
-          <div id="mobile-slider-panel" class="mobile-glass-slider hidden p-2.5 rounded-xl flex flex-col gap-1.5 animate-in mb-1">
+          <div id="mobile-slider-panel" class="mobile-glass-slider hidden p-2 rounded-xl flex flex-col gap-1 animate-in mb-1 w-full">
             <div class="flex justify-between items-center text-[11px]">
               <span class="font-bold text-stone-700">적용 강도</span>
-              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-200/80 px-1.5 py-0.5 rounded text-[10px] border border-stone-300/80">1.00x</span>
+              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-200/80 px-1.5 py-0.2 rounded text-[10px] border border-stone-300/80">1.00x</span>
             </div>
             <input type="range" min="0" max="2" step="0.01" value="1.0"
                    style="--val: 50; --fill-color: #78716c;"
@@ -191,60 +191,60 @@ export function renderColorLab(initialWeakness) {
           <div class="flex flex-col gap-1.5 w-full">
             
             <!-- Top Row: Mode Switch & Korean Status & Close -->
-            <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center justify-between gap-2.5 w-full">
               <!-- Mode Toggle (체험 / 보정) -->
-              <div class="flex items-center p-0.5 bg-stone-300/60 rounded-lg">
-                <button id="mobile-mode-sim-btn" class="mode-simulate-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all bg-white text-rose-700 shadow-xs">
+              <div class="flex items-center p-0.5 bg-stone-300/60 rounded-lg shrink-0">
+                <button id="mobile-mode-sim-btn" class="mode-simulate-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all bg-white text-rose-700 shadow-xs whitespace-nowrap">
                   👁️ 체험
                 </button>
-                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all text-stone-600 hover:text-stone-900">
+                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all text-stone-600 hover:text-stone-900 whitespace-nowrap">
                   ✨ 보정
                 </button>
               </div>
 
               <!-- Status Badge (순수 한글 표기, 말줄임표 제거) -->
-              <div class="flex-1 text-center min-w-0 px-1">
+              <div class="text-center shrink-0">
                 <span id="mobile-dock-status" class="inline-block px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/80 text-stone-800 border border-stone-300/70 whitespace-nowrap shadow-xs">
                   정상
                 </span>
               </div>
 
               <!-- Close/Minimize Button -->
-              <button id="mobile-dock-close" class="w-5 h-5 rounded-full bg-stone-300/70 hover:bg-stone-400 text-stone-600 text-[11px] font-bold flex items-center justify-center transition-colors" title="닫기">&times;</button>
+              <button id="mobile-dock-close" class="w-5 h-5 rounded-full bg-stone-300/70 hover:bg-stone-400 text-stone-600 text-[11px] font-bold flex items-center justify-center transition-colors shrink-0" title="닫기">&times;</button>
             </div>
 
             <!-- Bottom Row: R, G, B Cones + Intensity Toggle (아이콘과 수치값만) + Reset (맨 우측으로 이동) -->
-            <div class="flex items-center justify-between gap-1.5 pt-1 border-t border-stone-300/60">
+            <div class="flex items-center justify-between gap-2.5 pt-1.5 border-t border-stone-300/60 w-full">
               
               <!-- R, G, B Cone Buttons Group -->
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 shrink-0">
                 <!-- R Button -->
-                <button id="dock-btn-r" class="dock-cone-btn w-8 h-8 rounded-full border border-rose-300 text-rose-500 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
+                <button id="dock-btn-r" class="dock-cone-btn w-8 h-8 rounded-full border border-rose-300 text-rose-500 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs shrink-0">
                   <span class="text-xs font-black leading-none">R</span>
                 </button>
 
                 <!-- G Button -->
-                <button id="dock-btn-g" class="dock-cone-btn w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
+                <button id="dock-btn-g" class="dock-cone-btn w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs shrink-0">
                   <span class="text-xs font-black leading-none">G</span>
                 </button>
 
                 <!-- B Button -->
-                <button id="dock-btn-b" class="dock-cone-btn w-8 h-8 rounded-full border border-blue-300 text-blue-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
+                <button id="dock-btn-b" class="dock-cone-btn w-8 h-8 rounded-full border border-blue-300 text-blue-600 bg-white/70 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs shrink-0">
                   <span class="text-xs font-black leading-none">B</span>
                 </button>
               </div>
 
               <!-- Intensity Toggle Button (글자 "강도" 없이 아이콘 + 수치값만) -->
               <button id="mobile-intensity-toggle-btn"
-                class="py-1 px-2.5 rounded-lg border border-stone-300/90 bg-white/80 hover:bg-white text-[11px] font-bold text-stone-700 flex items-center gap-1 transition-all shadow-xs"
+                class="py-1 px-2.5 rounded-lg border border-stone-300/90 bg-white/80 hover:bg-white text-[11px] font-bold text-stone-700 flex items-center gap-1 transition-all shadow-xs shrink-0 whitespace-nowrap"
                 title="강도 조절">
-                <svg class="w-3.5 h-3.5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                <span id="dock-intensity-text" class="text-[11px] font-bold text-stone-900">1.0x</span>
+                <svg class="w-3.5 h-3.5 text-stone-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span id="dock-intensity-text" class="text-[11px] font-bold text-stone-900 whitespace-nowrap">1.0x</span>
               </button>
 
               <!-- Reset Button (맨 우측으로 위치 변경) -->
               <button id="dock-btn-reset"
-                class="w-8 h-8 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-xs font-bold shadow-xs"
+                class="w-8 h-8 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-xs font-bold shadow-xs shrink-0"
                 title="초기화 (정상)">
                 ↺
               </button>
