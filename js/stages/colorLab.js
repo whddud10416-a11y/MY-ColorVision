@@ -46,16 +46,25 @@ export function renderColorLab(initialWeakness) {
       <!-- Lab Interface (Hidden initially) -->
       <div id="lab-interface" class="w-full hidden animate-in" style="--stagger: 0ms">
         
-        <!-- Responsive layout: Stacked on mobile, side-by-side on desktop (lg: 1024px+) -->
+        <!-- Mobile Quick Actions Bar (홈으로 / 새 이미지) -->
+        <div class="flex lg:hidden gap-2.5 w-full max-w-md mx-auto mb-3 justify-center">
+          <button onclick="window.setMode('home')" class="bg-stone-100 hover:bg-stone-200 border border-stone-200 transition-colors px-4 py-2.5 rounded-xl text-stone-600 font-bold text-xs flex items-center justify-center">홈으로</button>
+          <button onclick="document.getElementById('image-input').click()" class="glow-button flex-1 py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            <span>새 이미지</span>
+          </button>
+        </div>
+
+        <!-- Responsive layout: Side-by-side on desktop (lg: 1024px+), Canvas only on mobile -->
         <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-6 items-start justify-center w-full pb-20 lg:pb-0">
           
-          <!-- Left Panel: Controls -->
-          <div class="w-full lg:w-[320px] xl:w-[350px] flex-shrink-0 flex flex-col gap-2.5 sm:gap-3">
+          <!-- Desktop Left Panel: Controls (hidden on mobile, visible on desktop) -->
+          <div class="hidden lg:flex w-[320px] xl:w-[350px] flex-shrink-0 flex-col gap-2.5 sm:gap-3">
             
             <!-- Mode Selector -->
             <div class="p-3 sm:p-4 bg-white/70 rounded-2xl border border-stone-200/60 shadow-sm">
               <div class="flex flex-col gap-2">
-                <div id="mode-simulate" class="bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]">
+                <div class="mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]">
                   <div class="bg-rose-100 p-1.5 rounded-full text-lg">👁️</div>
                   <div>
                     <h3 class="text-xs sm:text-sm font-black text-rose-700">시각 체험 모드</h3>
@@ -63,7 +72,7 @@ export function renderColorLab(initialWeakness) {
                   </div>
                 </div>
                 
-                <div id="mode-correct" class="bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50">
+                <div class="mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50">
                   <div class="bg-indigo-100 p-1.5 rounded-full text-lg">✨</div>
                   <div>
                     <h3 class="text-xs sm:text-sm font-black text-indigo-700">색상 보정 모드</h3>
@@ -99,7 +108,7 @@ export function renderColorLab(initialWeakness) {
             </div>
 
             <!-- Intensity Slider (Desktop Only) -->
-            <div class="p-3 sm:p-4 bg-white/70 rounded-2xl border border-stone-200/60 shadow-sm hidden lg:block">
+            <div class="p-3 sm:p-4 bg-white/70 rounded-2xl border border-stone-200/60 shadow-sm">
               <div class="flex justify-between items-center mb-2.5">
                 <span class="text-xs font-bold text-stone-500">적용 강도</span>
                 <span class="intensity-val display-font text-stone-600 font-bold text-xs bg-stone-200 px-2.5 py-0.5 rounded-lg border border-stone-300">1.0x</span>
@@ -143,10 +152,84 @@ export function renderColorLab(initialWeakness) {
               </div>
 
             </div>
+          </div>
+          
+        </div>
+
+        <!-- Floating Action Button for Controls on Mobile (우측 하단 조절 버튼) -->
+        <button id="mobile-control-fab"
+          class="fixed bottom-6 right-6 z-40 lg:hidden glow-button py-3 px-4.5 rounded-full text-white font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+          <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          <span>필터 조절</span>
+        </button>
+
+        <!-- Mobile Controls Popup Modal (우측 하단 버튼 클릭 시 페이지 위에 뜨는 조절 팝업) -->
+        <div id="mobile-control-modal" class="fixed inset-0 z-50 hidden lg:hidden">
+          <!-- Backdrop -->
+          <div id="modal-backdrop" class="absolute inset-0 bg-stone-900/50 backdrop-blur-xs transition-opacity"></div>
+          
+          <!-- Bottom Sheet / Modal Card -->
+          <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-[#FAF7F2] rounded-t-[2rem] p-5 sm:p-6 shadow-2xl border-t border-stone-300 overflow-y-auto z-10 flex flex-col gap-3.5">
             
-            <!-- Intensity Slider (Mobile Only) -->
-            <div class="p-3 sm:p-4 w-full bg-white/70 rounded-2xl border border-stone-200/60 shadow-sm lg:hidden">
-              <div class="flex justify-between items-center mb-2.5">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-2 border-b border-stone-200">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🎨</span>
+                <h3 class="display-font text-base font-bold text-stone-800">색각 필터 및 강도 조절</h3>
+              </div>
+              <button id="modal-close-btn" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold flex items-center justify-center text-sm transition-colors">&times;</button>
+            </div>
+
+            <!-- Mode Selector inside Modal -->
+            <div class="p-3 bg-white/80 rounded-2xl border border-stone-200/70 shadow-xs">
+              <p class="text-xs font-bold text-stone-500 mb-2">모드 선택</p>
+              <div class="flex flex-col gap-2">
+                <div class="mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]">
+                  <div class="bg-rose-100 p-1.5 rounded-full text-base">👁️</div>
+                  <div>
+                    <h4 class="text-xs font-black text-rose-700">시각 체험 모드</h4>
+                    <p class="text-[10px] text-rose-500 mt-0.5 break-keep">색각 이상을 가진 분들의 시야 시뮬레이션</p>
+                  </div>
+                </div>
+                
+                <div class="mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100">
+                  <div class="bg-indigo-100 p-1.5 rounded-full text-base">✨</div>
+                  <div>
+                    <h4 class="text-xs font-black text-indigo-700">색상 보정 모드</h4>
+                    <p class="text-[10px] text-indigo-500 mt-0.5 break-keep">인지 가능한 영역으로 강제 교정</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Presets inside Modal -->
+            <div class="p-3 bg-white/80 rounded-2xl border border-stone-200/70 shadow-xs">
+              <p class="text-xs font-bold text-stone-500 mb-2">색각 이상 유형 프리셋</p>
+              <div class="flex flex-col gap-1.5">
+                <button class="preset-btn py-1.5 px-3 rounded-lg font-bold text-xs border transition-all w-full ${currentType === 'default' ? 'bg-stone-400 text-white border-stone-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="default" data-severity="0">정상 (Original)</button>
+                
+                <div class="grid grid-cols-2 gap-1.5">
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'protan' && currentSeverity === 0.5 ? 'bg-rose-600 text-white border-rose-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="protan" data-severity="0.5">제1색각 (적색약)</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'protan' && currentSeverity === 1.0 ? 'bg-rose-800 text-white border-rose-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="protan" data-severity="1.0">제1색각 (적색맹)</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'deutan' && currentSeverity === 0.5 ? 'bg-green-600 text-white border-green-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="deutan" data-severity="0.5">제2색각 (녹색약)</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'deutan' && currentSeverity === 1.0 ? 'bg-green-800 text-white border-green-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="deutan" data-severity="1.0">제2색각 (녹색맹)</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'tritan' && currentSeverity === 0.5 ? 'bg-blue-600 text-white border-blue-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="tritan" data-severity="0.5">제3색각 (청색약)</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'tritan' && currentSeverity === 1.0 ? 'bg-blue-800 text-white border-blue-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="tritan" data-severity="1.0">제3색각 (청색맹)</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'achromato' && currentSeverity === 0.5 ? 'bg-gray-500 text-white border-gray-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="achromato" data-severity="0.5">전색약</button>
+                  <button class="preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all ${currentType === 'achromato' && currentSeverity === 1.0 ? 'bg-gray-700 text-white border-gray-500' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="achromato" data-severity="1.0">전색맹</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1.5 mt-0.5">
+                  <button class="preset-btn py-1.5 px-1 rounded-lg font-bold text-[10px] border transition-all ${currentType === 'redgreen' ? 'bg-orange-600 text-white border-orange-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="redgreen" data-severity="0.5">복합(적녹)</button>
+                  <button class="preset-btn py-1.5 px-1 rounded-lg font-bold text-[10px] border transition-all ${currentType === 'redblue' ? 'bg-fuchsia-600 text-white border-fuchsia-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="redblue" data-severity="0.5">복합(적청)</button>
+                  <button class="preset-btn py-1.5 px-1 rounded-lg font-bold text-[10px] border transition-all ${currentType === 'greenblue' ? 'bg-teal-600 text-white border-teal-400' : 'bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300'}" data-type="greenblue" data-severity="0.5">복합(녹청)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Intensity Slider inside Modal -->
+            <div class="p-3 bg-white/80 rounded-2xl border border-stone-200/70 shadow-xs">
+              <div class="flex justify-between items-center mb-2">
                 <span class="text-xs font-bold text-stone-500">적용 강도</span>
                 <span class="intensity-val display-font text-stone-600 font-bold text-xs bg-stone-200 px-2.5 py-0.5 rounded-lg border border-stone-300">1.0x</span>
               </div>
@@ -157,9 +240,15 @@ export function renderColorLab(initialWeakness) {
                             [&::-webkit-slider-thumb]:!-mt-[8px] [&::-webkit-slider-thumb]:!bg-stone-500 [&::-webkit-slider-thumb]:!rounded-full 
                             [&::-webkit-slider-thumb]:!shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
             </div>
+
+            <!-- Done Button -->
+            <button id="modal-done-btn" class="glow-button w-full py-3 rounded-xl text-white font-bold text-sm shadow-sm flex justify-center items-center">
+              완료 (닫기)
+            </button>
+
           </div>
-          
         </div>
+
       </div>
     </div>
   `;
@@ -181,9 +270,29 @@ export function renderColorLab(initialWeakness) {
   const sliders = document.querySelectorAll(".intensity-slider");
   const intensityVals = document.querySelectorAll(".intensity-val");
   const presetBtns = document.querySelectorAll(".preset-btn");
-  const modeSimulateBtn = document.getElementById("mode-simulate");
-  const modeCorrectBtn = document.getElementById("mode-correct");
+  const modeSimulateBtns = document.querySelectorAll(".mode-simulate-btn");
+  const modeCorrectBtns = document.querySelectorAll(".mode-correct-btn");
   const resultLabel = document.getElementById("result-label");
+
+  // Mobile modal controls
+  const fab = document.getElementById("mobile-control-fab");
+  const modal = document.getElementById("mobile-control-modal");
+  const backdrop = document.getElementById("modal-backdrop");
+  const closeBtn = document.getElementById("modal-close-btn");
+  const doneBtn = document.getElementById("modal-done-btn");
+
+  if (fab && modal) {
+    fab.addEventListener("click", () => modal.classList.remove("hidden"));
+  }
+  if (closeBtn && modal) {
+    closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+  }
+  if (doneBtn && modal) {
+    doneBtn.addEventListener("click", () => modal.classList.add("hidden"));
+  }
+  if (backdrop && modal) {
+    backdrop.addEventListener("click", () => modal.classList.add("hidden"));
+  }
 
   // Initial UI state update based on user test results
   updateActiveButton();
@@ -317,21 +426,33 @@ export function renderColorLab(initialWeakness) {
   function setMode(mode) {
     currentMode = mode;
     if (mode === 'simulate') {
-       modeSimulateBtn.className = "bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
-       modeCorrectBtn.className = "bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50";
-       resultLabel.textContent = 'Simulation';
-       resultLabel.className = 'text-rose-600 text-xs font-bold mb-2 tracking-wider uppercase display-font';
+       modeSimulateBtns.forEach(btn => {
+         btn.className = "mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
+       });
+       modeCorrectBtns.forEach(btn => {
+         btn.className = "mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50";
+       });
+       if (resultLabel) {
+         resultLabel.textContent = 'Simulation';
+         resultLabel.className = 'text-rose-600 text-xs font-bold mb-2 tracking-wider uppercase display-font';
+       }
     } else {
-       modeCorrectBtn.className = "bg-indigo-50 border-2 border-indigo-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
-       modeSimulateBtn.className = "bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-rose-50";
-       resultLabel.textContent = 'Daltonized';
-       resultLabel.className = 'text-indigo-600 text-xs font-bold mb-2 tracking-wider uppercase display-font';
+       modeCorrectBtns.forEach(btn => {
+         btn.className = "mode-correct-btn bg-indigo-50 border-2 border-indigo-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
+       });
+       modeSimulateBtns.forEach(btn => {
+         btn.className = "mode-simulate-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-rose-50";
+       });
+       if (resultLabel) {
+         resultLabel.textContent = 'Daltonized';
+         resultLabel.className = 'text-indigo-600 text-xs font-bold mb-2 tracking-wider uppercase display-font';
+       }
     }
     applyCorrection();
   }
 
-  modeSimulateBtn.addEventListener("click", () => setMode('simulate'));
-  modeCorrectBtn.addEventListener("click", () => setMode('correct'));
+  modeSimulateBtns.forEach(btn => btn.addEventListener("click", () => setMode('simulate')));
+  modeCorrectBtns.forEach(btn => btn.addEventListener("click", () => setMode('correct')));
 
   presetBtns.forEach(btn => {
     btn.addEventListener("click", (e) => {

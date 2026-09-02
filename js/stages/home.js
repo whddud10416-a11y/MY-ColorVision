@@ -60,18 +60,18 @@ function renderMobileHome() {
   const isCurrentlyLoading = !window.appLoaded;
 
   const html = `
-    <div class="flex flex-col items-center justify-center h-full min-h-[calc(100dvh-5rem)] w-full px-4 relative overflow-hidden select-none" id="home-root">
+    <div class="flex flex-col items-center justify-center h-full min-h-[calc(100dvh-5rem)] w-full px-4 relative overflow-hidden select-none text-center" id="home-root">
       
       <!-- Ambient Circle Backdrop / Loading Indicator -->
       <div id="home-cover-circle"
-        class="absolute -z-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border border-stone-200/80 transition-all duration-700 ${isCurrentlyLoading ? 'loading-circle' : ''}"
+        class="absolute -z-10 w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border border-stone-200/80 transition-all duration-700 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${isCurrentlyLoading ? 'loading-circle' : ''}"
         style="background: radial-gradient(circle, rgba(200, 190, 255, 0.12) 0%, rgba(245, 240, 230, 0.05) 50%, transparent 70%);">
       </div>
 
       <!-- Main Title -->
       <h1 id="home-cover-title"
-        class="mb-8 sm:mb-10 text-6xl sm:text-7xl font-bold text-stone-800 transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
-        style="font-family: 'Dancing Script', cursive; line-height: 1.1; letter-spacing: calc(0.04em + 1.5px) !important; --stagger: 0ms;">
+        class="cursive-title mb-6 sm:mb-8 text-5xl sm:text-6xl md:text-7xl font-bold text-stone-800 text-center w-full px-2 transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        style="font-family: 'Dancing Script', cursive !important; line-height: 1.15; letter-spacing: calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">
         Color Vision
       </h1>
 

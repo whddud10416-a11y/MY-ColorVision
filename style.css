@@ -684,6 +684,10 @@ input[type=range]:active::-moz-range-thumb {
 /* Nav button styling */
 nav button {
     color: #A39E96 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     text-shadow: none !important;
     filter: none !important;
     -webkit-filter: none !important;
@@ -697,7 +701,17 @@ nav button:hover {
 nav button.active-nav,
 nav button[style*="drop-shadow"] {
     color: #2C2C2C !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     filter: none !important;
+}
+
+/* ── Dancing Script Cursive Font for Title ── */
+.cursive-title,
+#home-cover-title {
+    font-family: 'Dancing Script', cursive !important;
+    text-align: center !important;
 }
 
 /* Hide Play button on mobile, show on desktop */
