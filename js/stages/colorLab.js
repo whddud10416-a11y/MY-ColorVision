@@ -505,9 +505,20 @@ export function renderColorLab(initialWeakness) {
       updateFromConeStates();
     });
   }
+  function resetIntensity() {
+    customIntensity = 1.0;
+    intensityVals.forEach(val => val.textContent = "1.00x");
+    if (dockIntensityText) dockIntensityText.textContent = "1.0x";
+    sliders.forEach(s => {
+      s.value = "1.0";
+      s.style.setProperty('--val', 50);
+    });
+  }
+
   if (btnReset) {
     btnReset.addEventListener("click", () => {
       coneStates = { R: 0, G: 0, B: 0 };
+      resetIntensity();
       updateFromConeStates();
     });
   }
@@ -700,6 +711,9 @@ export function renderColorLab(initialWeakness) {
     btn.addEventListener("click", (e) => {
       currentType = e.target.dataset.type;
       currentSeverity = parseFloat(e.target.dataset.severity);
+      if (currentType === 'default') {
+        resetIntensity();
+      }
       updateActiveButton();
       syncConeStatesFromCurrent();
       applyCorrection();
