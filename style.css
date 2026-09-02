@@ -403,13 +403,19 @@ input[type=range]:active::-moz-range-thumb {
     animation: pulseGlow 5s ease-in-out infinite;
 }
 
-/* ── Loading & Focus In Animations ── */
+/* ── Loading Circle Centering & Spinning ── */
+#home-cover-circle {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
 @keyframes spin-circle {
     0% {
-        transform: rotate(0deg);
+        transform: translate(-50%, -50%) rotate(0deg);
     }
     100% {
-        transform: rotate(360deg);
+        transform: translate(-50%, -50%) rotate(360deg);
     }
 }
 

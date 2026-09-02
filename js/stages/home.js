@@ -64,7 +64,7 @@ function renderMobileHome() {
       
       <!-- Ambient Circle Backdrop / Loading Indicator -->
       <div id="home-cover-circle"
-        class="absolute -z-10 w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border border-stone-200/80 transition-all duration-700 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${isCurrentlyLoading ? 'loading-circle' : ''}"
+        class="absolute -z-10 w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border border-stone-200/80 transition-all duration-700 ${isCurrentlyLoading ? 'loading-circle' : ''}"
         style="background: radial-gradient(circle, rgba(200, 190, 255, 0.12) 0%, rgba(245, 240, 230, 0.05) 50%, transparent 70%);">
       </div>
 
