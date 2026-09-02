@@ -18,6 +18,10 @@ export function renderColorLab(initialWeakness) {
     window.cleanupColorLab();
     window.cleanupColorLab = null;
   }
+  const oldFab = document.getElementById("mobile-control-fab");
+  if (oldFab) oldFab.remove();
+  const oldDock = document.getElementById("mobile-control-dock");
+  if (oldDock) oldDock.remove();
 
   container.innerHTML = "";
   const wrapper = document.createElement("div");
@@ -156,21 +160,24 @@ export function renderColorLab(initialWeakness) {
           
         </div>
 
-        <!-- Floating Action Button for Controls on Mobile (원형 아이콘만 남김) -->
+        <!-- Floating Action Button for Controls on Mobile (원형 아이콘 전용, 뷰포트 고정) -->
         <button id="mobile-control-fab"
-          class="fixed bottom-5 right-5 z-40 lg:hidden glow-button w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+          class="fixed bottom-5 right-5 z-[9999] lg:hidden glow-button w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all hidden"
+          style="position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important;"
           aria-label="필터 조절">
           <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
         </button>
 
-        <!-- Mobile Compact Floating Control Dock (배경을 가리지 않는 하단 슬림 컨트롤 도크) -->
-        <div id="mobile-control-dock" class="fixed bottom-20 right-4 left-4 max-w-sm ml-auto mr-auto z-40 lg:hidden flex flex-col gap-2 transition-all duration-300">
+        <!-- Mobile Compact Floating Control Dock (반투명 글래스형 슬림 플로팅 도크) -->
+        <div id="mobile-control-dock"
+          class="mobile-glass-dock fixed bottom-20 right-4 left-4 max-w-sm ml-auto mr-auto z-[9999] lg:hidden flex flex-col gap-2 transition-all duration-300 rounded-2xl p-3 shadow-xl hidden"
+          style="position: fixed !important; bottom: 84px !important; right: 16px !important; left: 16px !important; max-width: 380px !important; margin-left: auto !important; margin-right: auto !important; z-index: 9999 !important;">
           
           <!-- Floating Intensity Slider Panel (버튼 누르면 열리는 슬라이더 패널) -->
-          <div id="mobile-slider-panel" class="hidden p-3 bg-white/95 backdrop-blur-md rounded-2xl border border-stone-300/90 shadow-xl flex flex-col gap-2 animate-in">
+          <div id="mobile-slider-panel" class="mobile-glass-slider hidden p-3 rounded-2xl flex flex-col gap-2 animate-in mb-1">
             <div class="flex justify-between items-center text-xs">
-              <span class="font-bold text-stone-600">적용 강도 조절</span>
-              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">1.00x</span>
+              <span class="font-bold text-stone-700">적용 강도</span>
+              <span id="mobile-slider-val-label" class="intensity-val font-bold text-stone-800 bg-stone-200/80 px-2 py-0.5 rounded border border-stone-300/80">1.00x</span>
             </div>
             <input type="range" min="0" max="2" step="0.01" value="1.0"
                    style="--val: 50; --fill-color: #78716c;"
@@ -180,62 +187,66 @@ export function renderColorLab(initialWeakness) {
                           [&::-webkit-slider-thumb]:!shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
           </div>
 
-          <!-- Main Floating Dock Card -->
-          <div class="bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-stone-300/80 flex flex-col gap-2.5">
+          <!-- Main Floating Dock Inner Content -->
+          <div class="flex flex-col gap-2.5 w-full">
             
-            <!-- Top Row: Mode Switch & Status Badge & Close -->
+            <!-- Top Row: Mode Switch & Korean Status & Close -->
             <div class="flex items-center justify-between gap-2">
               <!-- Mode Toggle (체험 / 보정) -->
-              <div class="flex items-center p-0.5 bg-stone-200/70 rounded-xl">
+              <div class="flex items-center p-0.5 bg-stone-300/60 rounded-xl">
                 <button id="mobile-mode-sim-btn" class="mode-simulate-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all bg-white text-rose-700 shadow-xs">
                   👁️ 체험
                 </button>
-                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-500 hover:text-stone-800">
+                <button id="mobile-mode-cor-btn" class="mode-correct-btn py-1 px-2.5 rounded-lg text-xs font-bold transition-all text-stone-600 hover:text-stone-900">
                   ✨ 보정
                 </button>
               </div>
 
-              <!-- Status Badge -->
-              <div class="flex-1 text-center min-w-0">
-                <span id="mobile-dock-status" class="inline-block truncate max-w-full px-2 py-0.5 rounded-full text-[11px] font-bold bg-stone-100 text-stone-700 border border-stone-200/80">
-                  정상 (Original)
+              <!-- Status Badge (순수 한글 표기, 말줄임표 제거) -->
+              <div class="flex-1 text-center min-w-0 px-1">
+                <span id="mobile-dock-status" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/80 text-stone-800 border border-stone-300/70 whitespace-nowrap shadow-xs">
+                  정상
                 </span>
               </div>
 
               <!-- Close/Minimize Button -->
-              <button id="mobile-dock-close" class="w-6 h-6 rounded-full bg-stone-200/80 hover:bg-stone-300 text-stone-500 text-xs font-bold flex items-center justify-center transition-colors">&times;</button>
+              <button id="mobile-dock-close" class="w-6 h-6 rounded-full bg-stone-300/70 hover:bg-stone-400 text-stone-600 text-xs font-bold flex items-center justify-center transition-colors" title="닫기">&times;</button>
             </div>
 
-            <!-- Bottom Row: R, G, B Cone Buttons + Intensity Button -->
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-200/60">
+            <!-- Bottom Row: R, G, B Cones + Intensity Toggle (아이콘과 수치값만) + Reset (맨 우측으로 이동) -->
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-stone-300/60">
               
               <!-- R, G, B Cone Buttons Group -->
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 sm:gap-2">
                 <!-- R Button -->
-                <button id="dock-btn-r" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-rose-50/50 hover:bg-rose-100/60 flex flex-col items-center justify-center transition-all cursor-pointer select-none">
+                <button id="dock-btn-r" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
                   <span class="text-xs font-black leading-none">R</span>
                 </button>
 
                 <!-- G Button -->
-                <button id="dock-btn-g" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-100/60 flex flex-col items-center justify-center transition-all cursor-pointer select-none">
+                <button id="dock-btn-g" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
                   <span class="text-xs font-black leading-none">G</span>
                 </button>
 
                 <!-- B Button -->
-                <button id="dock-btn-b" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-blue-50/50 hover:bg-blue-100/60 flex flex-col items-center justify-center transition-all cursor-pointer select-none">
+                <button id="dock-btn-b" class="dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer select-none shadow-xs">
                   <span class="text-xs font-black leading-none">B</span>
-                </button>
-
-                <!-- Reset to Normal (↺) Button -->
-                <button id="dock-btn-reset" class="w-8 h-8 rounded-full border border-stone-300 text-stone-400 hover:text-stone-700 hover:bg-stone-100 flex items-center justify-center transition-all text-xs" title="초기화 (정상)">
-                  ↺
                 </button>
               </div>
 
-              <!-- Intensity Slider Open/Close Button -->
-              <button id="mobile-intensity-toggle-btn" class="py-1.5 px-3 rounded-xl border border-stone-300 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 flex items-center gap-1.5 transition-all shadow-xs">
-                <svg class="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                <span>강도 <b id="dock-intensity-text" class="text-stone-900">1.0x</b></span>
+              <!-- Intensity Toggle Button (글자 "강도" 없이 아이콘 + 수치값만) -->
+              <button id="mobile-intensity-toggle-btn"
+                class="py-1.5 px-3 rounded-xl border border-stone-300/90 bg-white/80 hover:bg-white text-xs font-bold text-stone-700 flex items-center gap-1.5 transition-all shadow-xs"
+                title="강도 조절">
+                <svg class="w-3.5 h-3.5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span id="dock-intensity-text" class="text-xs font-bold text-stone-900">1.0x</span>
+              </button>
+
+              <!-- Reset Button (맨 우측으로 위치 변경) -->
+              <button id="dock-btn-reset"
+                class="w-9 h-9 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-sm font-bold shadow-xs"
+                title="초기화 (정상)">
+                ↺
               </button>
 
             </div>
@@ -271,6 +282,11 @@ export function renderColorLab(initialWeakness) {
   // Mobile Floating Dock & FAB Elements
   const fab = document.getElementById("mobile-control-fab");
   const dock = document.getElementById("mobile-control-dock");
+
+  // Move FAB and Dock directly to document.body so they are 100% viewport-fixed and never scroll with #app
+  if (fab && fab.parentNode !== document.body) document.body.appendChild(fab);
+  if (dock && dock.parentNode !== document.body) document.body.appendChild(dock);
+
   const dockClose = document.getElementById("mobile-dock-close");
   const intensityToggleBtn = document.getElementById("mobile-intensity-toggle-btn");
   const sliderPanel = document.getElementById("mobile-slider-panel");
@@ -310,7 +326,7 @@ export function renderColorLab(initialWeakness) {
         btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-800 bg-rose-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-rose-300";
         btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
       } else {
-        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-rose-50/50 hover:bg-rose-100/60 flex flex-col items-center justify-center transition-all cursor-pointer";
+        btnR.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-rose-300 text-rose-500 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
         btnR.innerHTML = `<span class="text-xs font-black leading-none">R</span>`;
       }
     }
@@ -323,7 +339,7 @@ export function renderColorLab(initialWeakness) {
         btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-800 bg-emerald-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-emerald-300";
         btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
       } else {
-        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-100/60 flex flex-col items-center justify-center transition-all cursor-pointer";
+        btnG.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-emerald-300 text-emerald-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
         btnG.innerHTML = `<span class="text-xs font-black leading-none">G</span>`;
       }
     }
@@ -336,7 +352,7 @@ export function renderColorLab(initialWeakness) {
         btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-800 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-md ring-2 ring-blue-300";
         btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span><span class="text-[8px] font-bold leading-none mt-0.5">맹</span>`;
       } else {
-        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-blue-50/50 hover:bg-blue-100/60 flex flex-col items-center justify-center transition-all cursor-pointer";
+        btnB.className = "dock-cone-btn w-10 h-10 rounded-full border-2 border-blue-300 text-blue-600 bg-white/60 hover:bg-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-xs";
         btnB.innerHTML = `<span class="text-xs font-black leading-none">B</span>`;
       }
     }
@@ -358,36 +374,36 @@ export function renderColorLab(initialWeakness) {
       if (actR && actG) {
         currentType = 'redgreen';
         currentSeverity = 0.5;
-        if (dockStatus) dockStatus.textContent = '복합 (적녹)';
+        if (dockStatus) dockStatus.textContent = '복합(적녹)';
       } else if (actR && actB) {
         currentType = 'redblue';
         currentSeverity = 0.5;
-        if (dockStatus) dockStatus.textContent = '복합 (적청)';
+        if (dockStatus) dockStatus.textContent = '복합(적청)';
       } else if (actG && actB) {
         currentType = 'greenblue';
         currentSeverity = 0.5;
-        if (dockStatus) dockStatus.textContent = '복합 (녹청)';
+        if (dockStatus) dockStatus.textContent = '복합(녹청)';
       }
     } else if (count === 1) {
       // 1개 단독: 1번 누르면 색약(0.5), 한번 더 누르면 색맹(1.0)
       if (actR) {
         currentType = 'protan';
         currentSeverity = (coneStates.R === 2) ? 1.0 : 0.5;
-        if (dockStatus) dockStatus.textContent = (coneStates.R === 2) ? '제1색각 (적색맹)' : '제1색각 (적색약)';
+        if (dockStatus) dockStatus.textContent = (coneStates.R === 2) ? '적색맹' : '적색약';
       } else if (actG) {
         currentType = 'deutan';
         currentSeverity = (coneStates.G === 2) ? 1.0 : 0.5;
-        if (dockStatus) dockStatus.textContent = (coneStates.G === 2) ? '제2색각 (녹색맹)' : '제2색각 (녹색약)';
+        if (dockStatus) dockStatus.textContent = (coneStates.G === 2) ? '녹색맹' : '녹색약';
       } else if (actB) {
         currentType = 'tritan';
         currentSeverity = (coneStates.B === 2) ? 1.0 : 0.5;
-        if (dockStatus) dockStatus.textContent = (coneStates.B === 2) ? '제3색각 (청색맹)' : '제3색각 (청색약)';
+        if (dockStatus) dockStatus.textContent = (coneStates.B === 2) ? '청색맹' : '청색약';
       }
     } else {
       // 전체 해제: 정상
       currentType = 'default';
       currentSeverity = 0;
-      if (dockStatus) dockStatus.textContent = '정상 (Original)';
+      if (dockStatus) dockStatus.textContent = '정상';
     }
 
     renderConeButtons();
@@ -416,16 +432,16 @@ export function renderColorLab(initialWeakness) {
     renderConeButtons();
     if (dockStatus) {
       const map = {
-        'default': '정상 (Original)',
-        'protan': currentSeverity === 1.0 ? '제1색각 (적색맹)' : '제1색각 (적색약)',
-        'deutan': currentSeverity === 1.0 ? '제2색각 (녹색맹)' : '제2색각 (녹색약)',
-        'tritan': currentSeverity === 1.0 ? '제3색각 (청색맹)' : '제3색각 (청색약)',
-        'redgreen': '복합 (적녹)',
-        'redblue': '복합 (적청)',
-        'greenblue': '복합 (녹청)',
+        'default': '정상',
+        'protan': currentSeverity === 1.0 ? '적색맹' : '적색약',
+        'deutan': currentSeverity === 1.0 ? '녹색맹' : '녹색약',
+        'tritan': currentSeverity === 1.0 ? '청색맹' : '청색약',
+        'redgreen': '복합(적녹)',
+        'redblue': '복합(적청)',
+        'greenblue': '복합(녹청)',
         'achromato': '전색맹'
       };
-      dockStatus.textContent = map[currentType] || '정상 (Original)';
+      dockStatus.textContent = map[currentType] || '정상';
     }
   }
 
@@ -575,6 +591,8 @@ export function renderColorLab(initialWeakness) {
   window.addEventListener('resize', adjustCanvasSize);
   window.cleanupColorLab = () => {
     window.removeEventListener('resize', adjustCanvasSize);
+    if (fab && fab.parentNode) fab.parentNode.removeChild(fab);
+    if (dock && dock.parentNode) dock.parentNode.removeChild(dock);
   };
 
   // Events
@@ -724,6 +742,7 @@ export function renderColorLab(initialWeakness) {
         if (headerTitle) headerTitle.classList.add("lg:text-2xl", "lg:mb-0");
         const headerBox = document.getElementById("lab-header-box");
         if (headerBox) headerBox.classList.add("lg:mb-2");
+        if (fab) fab.classList.remove("hidden");
         if (dock) dock.classList.remove("hidden");
 
         adjustCanvasSize();
