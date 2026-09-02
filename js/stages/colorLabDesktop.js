@@ -135,9 +135,10 @@ export function initDesktopControls(core) {
       const type = e.target.dataset.type;
       const severity = parseFloat(e.target.dataset.severity);
       if (type === 'default') {
-        core.resetIntensity();
+        core.resetAll();
+      } else {
+        core.setTypeAndSeverity(type, severity);
       }
-      core.setTypeAndSeverity(type, severity);
     });
   });
 

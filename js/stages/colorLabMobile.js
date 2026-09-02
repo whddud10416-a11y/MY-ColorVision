@@ -104,7 +104,7 @@ export function initMobileControls(core) {
 
         <!-- Reset Button -->
         <button id="dock-btn-reset"
-          class="w-8 h-8 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-xs font-bold shadow-xs shrink-0"
+          class="w-8 h-8 rounded-full border border-stone-300/90 bg-white/80 hover:bg-white active:scale-90 text-stone-500 hover:text-stone-900 flex items-center justify-center transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer select-none"
           title="초기화 (정상)">
           ↺
         </button>
@@ -334,11 +334,14 @@ export function initMobileControls(core) {
     });
   }
   if (btnReset) {
-    btnReset.addEventListener("click", () => {
-      coneStates = { R: 0, G: 0, B: 0 };
-      core.resetIntensity();
-      updateFromConeStates();
-    });
+    const handleReset = (e) => {
+      if (e && e.type === 'touchend') {
+        e.preventDefault();
+      }
+      core.resetAll();
+    };
+    btnReset.addEventListener("click", handleReset);
+    btnReset.addEventListener("touchend", handleReset);
   }
 
   if (slider) {

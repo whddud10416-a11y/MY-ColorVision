@@ -71,6 +71,14 @@ export class ColorLabCore {
     this.notify();
   }
 
+  resetAll() {
+    this.currentType = 'default';
+    this.currentSeverity = 0;
+    this.customIntensity = 1.0;
+    this.applyCorrection();
+    this.notify();
+  }
+
   setupCanvases(img) {
     const MAX_WIDTH = 1200;
     let w = img.width, h = img.height;
