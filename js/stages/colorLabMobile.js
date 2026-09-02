@@ -134,6 +134,7 @@ export function initMobileControls(core) {
 
   // R, G, B Cone State Tracker: 0: Off, 1: 약 (0.5), 2: 맹 (1.0)
   let coneStates = { R: 0, G: 0, B: 0 };
+  let isInternalUpdate = false;
 
   function renderConeButtons() {
     if (btnR) {
@@ -177,45 +178,50 @@ export function initMobileControls(core) {
   }
 
   function updateFromConeStates() {
-    const actR = coneStates.R > 0;
-    const actG = coneStates.G > 0;
-    const actB = coneStates.B > 0;
-    const count = (actR ? 1 : 0) + (actG ? 1 : 0) + (actB ? 1 : 0);
+    isInternalUpdate = true;
+    try {
+      const actR = coneStates.R > 0;
+      const actG = coneStates.G > 0;
+      const actB = coneStates.B > 0;
+      const count = (actR ? 1 : 0) + (actG ? 1 : 0) + (actB ? 1 : 0);
 
-    if (count === 3) {
-      core.setTypeAndSeverity('achromato', 1.0);
-      if (dockStatus) dockStatus.textContent = '전색맹';
-    } else if (count === 2) {
-      if (actR && actG) {
-        core.setTypeAndSeverity('redgreen', 0.5);
-        if (dockStatus) dockStatus.textContent = '복합(적녹)';
-      } else if (actR && actB) {
-        core.setTypeAndSeverity('redblue', 0.5);
-        if (dockStatus) dockStatus.textContent = '복합(적청)';
-      } else if (actG && actB) {
-        core.setTypeAndSeverity('greenblue', 0.5);
-        if (dockStatus) dockStatus.textContent = '복합(녹청)';
+      if (count === 3) {
+        core.setTypeAndSeverity('achromato', 1.0);
+        if (dockStatus) dockStatus.textContent = '전색맹';
+      } else if (count === 2) {
+        if (actR && actG) {
+          core.setTypeAndSeverity('redgreen', 0.5);
+          if (dockStatus) dockStatus.textContent = '복합(적녹)';
+        } else if (actR && actB) {
+          core.setTypeAndSeverity('redblue', 0.5);
+          if (dockStatus) dockStatus.textContent = '복합(적청)';
+        } else if (actG && actB) {
+          core.setTypeAndSeverity('greenblue', 0.5);
+          if (dockStatus) dockStatus.textContent = '복합(녹청)';
+        }
+      } else if (count === 1) {
+        if (actR) {
+          const sev = (coneStates.R === 2) ? 1.0 : 0.5;
+          core.setTypeAndSeverity('protan', sev);
+          if (dockStatus) dockStatus.textContent = (coneStates.R === 2) ? '적색맹' : '적색약';
+        } else if (actG) {
+          const sev = (coneStates.G === 2) ? 1.0 : 0.5;
+          core.setTypeAndSeverity('deutan', sev);
+          if (dockStatus) dockStatus.textContent = (coneStates.G === 2) ? '녹색맹' : '녹색약';
+        } else if (actB) {
+          const sev = (coneStates.B === 2) ? 1.0 : 0.5;
+          core.setTypeAndSeverity('tritan', sev);
+          if (dockStatus) dockStatus.textContent = (coneStates.B === 2) ? '청색맹' : '청색약';
+        }
+      } else {
+        core.resetAll();
+        if (dockStatus) dockStatus.textContent = '정상';
       }
-    } else if (count === 1) {
-      if (actR) {
-        const sev = (coneStates.R === 2) ? 1.0 : 0.5;
-        core.setTypeAndSeverity('protan', sev);
-        if (dockStatus) dockStatus.textContent = (coneStates.R === 2) ? '적색맹' : '적색약';
-      } else if (actG) {
-        const sev = (coneStates.G === 2) ? 1.0 : 0.5;
-        core.setTypeAndSeverity('deutan', sev);
-        if (dockStatus) dockStatus.textContent = (coneStates.G === 2) ? '녹색맹' : '녹색약';
-      } else if (actB) {
-        const sev = (coneStates.B === 2) ? 1.0 : 0.5;
-        core.setTypeAndSeverity('tritan', sev);
-        if (dockStatus) dockStatus.textContent = (coneStates.B === 2) ? '청색맹' : '청색약';
-      }
-    } else {
-      core.setTypeAndSeverity('default', 0);
-      if (dockStatus) dockStatus.textContent = '정상';
+
+      renderConeButtons();
+    } finally {
+      isInternalUpdate = false;
     }
-
-    renderConeButtons();
   }
 
   function syncConeStatesFromCurrent() {
@@ -233,7 +239,7 @@ export function initMobileControls(core) {
     } else if (core.currentType === 'greenblue') {
       coneStates.G = 1; coneStates.B = 1;
     } else if (core.currentType === 'achromato') {
-      coneStates.R = 2; coneStates.G = 2; coneStates.B = 2;
+      coneStates.R = 1; coneStates.G = 1; coneStates.B = 1;
     }
     renderConeButtons();
 
@@ -315,30 +321,63 @@ export function initMobileControls(core) {
   if (mobSimBtn) mobSimBtn.addEventListener("click", () => core.setMode('simulate'));
   if (mobCorBtn) mobCorBtn.addEventListener("click", () => core.setMode('correct'));
 
-  if (btnR) {
-    btnR.addEventListener("click", () => {
-      coneStates.R = (coneStates.R + 1) % 3;
-      updateFromConeStates();
-    });
+  function handleConeClick(c) {
+    const activeKeys = ['R', 'G', 'B'].filter(k => coneStates[k] > 0);
+    const isActive = coneStates[c] > 0;
+
+    if (activeKeys.length > 1) {
+      // 2 or 3 colors currently active:
+      if (isActive) {
+        // Tapping an already active color turns it OFF!
+        coneStates[c] = 0;
+      } else {
+        // Tapping an inactive color turns it ON!
+        coneStates[c] = 1;
+      }
+    } else if (activeKeys.length === 1 && activeKeys[0] === c) {
+      // Only this single button is active: cycle 1 (약) -> 2 (맹) -> 0 (해제)
+      if (coneStates[c] === 1) {
+        coneStates[c] = 2;
+      } else {
+        coneStates[c] = 0;
+      }
+    } else {
+      // None active, or clicking a second button: turn it ON (1)
+      coneStates[c] = 1;
+    }
+
+    updateFromConeStates();
   }
-  if (btnG) {
-    btnG.addEventListener("click", () => {
-      coneStates.G = (coneStates.G + 1) % 3;
-      updateFromConeStates();
+
+  ['click', 'touchend'].forEach(evt => {
+    if (btnR) btnR.addEventListener(evt, (e) => {
+      if (e.type === 'touchend') e.preventDefault();
+      handleConeClick('R');
     });
-  }
-  if (btnB) {
-    btnB.addEventListener("click", () => {
-      coneStates.B = (coneStates.B + 1) % 3;
-      updateFromConeStates();
+    if (btnG) btnG.addEventListener(evt, (e) => {
+      if (e.type === 'touchend') e.preventDefault();
+      handleConeClick('G');
     });
-  }
+    if (btnB) btnB.addEventListener(evt, (e) => {
+      if (e.type === 'touchend') e.preventDefault();
+      handleConeClick('B');
+    });
+  });
+
   if (btnReset) {
     const handleReset = (e) => {
       if (e && e.type === 'touchend') {
         e.preventDefault();
       }
-      core.resetAll();
+      coneStates = { R: 0, G: 0, B: 0 };
+      isInternalUpdate = true;
+      try {
+        core.resetAll();
+        renderConeButtons();
+        if (dockStatus) dockStatus.textContent = '정상';
+      } finally {
+        isInternalUpdate = false;
+      }
     };
     btnReset.addEventListener("click", handleReset);
     btnReset.addEventListener("touchend", handleReset);
@@ -356,7 +395,9 @@ export function initMobileControls(core) {
 
   // Core subscriber
   core.subscribe(() => {
-    syncConeStatesFromCurrent();
+    if (!isInternalUpdate) {
+      syncConeStatesFromCurrent();
+    }
     updateMobileModeUI();
     if (slider) {
       slider.value = core.customIntensity;
