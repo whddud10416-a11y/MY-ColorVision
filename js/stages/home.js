@@ -70,23 +70,22 @@ function renderMobileHome() {
 
       <!-- Main Title -->
       <h1 id="home-cover-title"
-        class="cursive-title mb-6 sm:mb-8 text-5xl sm:text-6xl md:text-7xl font-bold text-stone-800 text-center w-full px-2 transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
-        style="font-family: 'Dancing Script', cursive !important; line-height: 1.15; letter-spacing: calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">
+        class="mb-6 sm:mb-8 text-4xl sm:text-6xl md:text-7xl font-bold text-stone-800 text-center w-full px-2 tracking-tight transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        style="font-family: 'Noto Serif KR', serif !important; line-height: 1.15; letter-spacing: calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">
         Color Vision
       </h1>
 
-      <!-- Mobile Action Buttons (Test & Lab only, no game) -->
+      <!-- Mobile Action Buttons (Test & Lab only) -->
       <div id="home-cover-buttons"
-        class="flex flex-col items-center justify-center gap-3.5 w-full max-w-xs transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        class="flex flex-col items-center justify-center gap-3 w-full max-w-xs transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
         style="--stagger: 250ms;">
         <button onclick="window.setMode('test')"
-          class="glow-button w-full py-3.5 px-6 rounded-full text-white font-bold text-base shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-          <span>검사 시작</span>
-          <svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          class="glow-button w-full py-3.5 px-6 rounded-full text-white font-bold text-base shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center">
+          Test
         </button>
         <button onclick="window.setMode('lab')"
-          class="w-full py-3 px-6 rounded-full text-stone-700 hover:text-stone-900 font-bold text-sm border border-stone-300/90 hover:border-stone-500 bg-white/70 hover:bg-white/95 backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xs flex items-center justify-center gap-2">
-          <span>색각 랩 (체험·보정)</span>
+          class="w-full py-3 px-6 rounded-full text-stone-700 hover:text-stone-900 font-bold text-sm border border-stone-300/90 hover:border-stone-500 bg-white/70 hover:bg-white/95 backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xs flex items-center justify-center">
+          Lab
         </button>
       </div>
 
@@ -152,7 +151,7 @@ function renderDesktopHome() {
       <!-- ══ PAGE 1: Cover ══ -->
       <section class="home-snap-section flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
         <div id="home-cover-circle" class="absolute -z-10 w-72 h-72 sm:w-[420px] sm:h-[420px] rounded-full border border-stone-200/70 ${isCurrentlyLoading ? 'loading-circle' : ''}" style="background:radial-gradient(circle,rgba(200,190,255,0.1) 0%,transparent 70%);"></div>
-        <h1 id="home-cover-title" class="mb-3 text-6xl sm:text-7xl lg:text-8xl font-bold text-stone-800 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="font-family:'Dancing Script',cursive;line-height:1.1;letter-spacing:calc(0.05em + 1.5px) !important; --stagger: 0ms;">Color Vision</h1>
+        <h1 id="home-cover-title" class="mb-3 text-6xl sm:text-7xl lg:text-8xl font-bold text-stone-800 text-center tracking-tight ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="font-family:'Noto Serif KR',serif !important;line-height:1.15;letter-spacing:calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">Color Vision</h1>
         <p id="home-cover-subtitle" class="text-stone-400 text-sm sm:text-base font-semibold tracking-[0.22em] uppercase mb-6 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 300ms;">색각 능력 진단 플랫폼</p>
         <p id="home-cover-desc" class="text-stone-500 text-sm sm:text-base max-w-lg mx-auto break-keep leading-relaxed mb-10 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 600ms;">
           색각 이상은 단순한 시력 문제가 아닌,<br>세상을 인지하는 또 다른 방식입니다.

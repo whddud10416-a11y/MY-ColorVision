@@ -707,10 +707,9 @@ nav button[style*="drop-shadow"] {
     filter: none !important;
 }
 
-/* ── Dancing Script Cursive Font for Title ── */
-.cursive-title,
+/* ── Main Title Font (Noto Serif KR) ── */
 #home-cover-title {
-    font-family: 'Dancing Script', cursive !important;
+    font-family: 'Noto Serif KR', serif !important;
     text-align: center !important;
 }
 
