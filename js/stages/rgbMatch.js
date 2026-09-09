@@ -1,12 +1,16 @@
 import { state, container } from '../state.js';
 import { renderNextStage } from '../../app.js';
-import { applyDaltonizeToColor } from '../utils/daltonize.js';
+import { createSubmissionGuard } from '../utils/session.js';
+import { toDisplayRgb, gradeDisplayedRgb } from '../utils/scoring.js';
 
 export function renderRgbMatchStage() {
+  const acceptSubmission = createSubmissionGuard();
+  const stageNumber = state.stageNumber;
   container.innerHTML = "";
   const isChallenge = state.mode === 'challenge';
-  const stageIdx = isChallenge ? Math.floor(Math.random() * 6) : state.stageNumber - 9;
-  const stageNum = isChallenge ? state.stageNumber : state.stageNumber - 8;
+  const filter = { type: isChallenge ? state.weakness : 'default', severity: 0.5, mode: 'correct', intensity: 1.0 };
+  const stageIdx = isChallenge ? Math.floor(Math.random() * 6) : stageNumber - 9;
+  const stageNum = isChallenge ? stageNumber : stageNumber - 8;
   const totalStages = isChallenge ? 5 : 7;
 
   const high = () => 180 + Math.floor(Math.random() * 76);
@@ -24,11 +28,8 @@ export function renderRgbMatchStage() {
     default: targetR = mid(); targetG = mid(); targetB = mid(); break;
   }
 
-  let displayTargetR = targetR, displayTargetG = targetG, displayTargetB = targetB;
-  if (isChallenge) {
-    const [corrR, corrG, corrB] = applyDaltonizeToColor(targetR, targetG, targetB, state.weakness, 0.5, 'correct', 1.0);
-    displayTargetR = corrR; displayTargetG = corrG; displayTargetB = corrB;
-  }
+  const target = { r: targetR, g: targetG, b: targetB };
+  const { r: displayTargetR, g: displayTargetG, b: displayTargetB } = toDisplayRgb(target, filter);
 
   const wrapper = document.createElement("div");
   wrapper.classList.add("flex", "flex-col", "items-center", "justify-center", "min-h-full", "w-full", "px-4", "lg:px-8");
@@ -47,7 +48,7 @@ export function renderRgbMatchStage() {
         <p class="text-stone-500 text-xs sm:text-sm break-keep mx-auto max-w-lg mt-1">
           목표 색상과 혼합 색상이 같아지도록 슬라이더를 조절하세요.
         </p>
-        ${isChallenge && state.weakness !== 'default' ? '<p class="text-indigo-600 text-xs sm:text-sm font-bold mt-2">✨ 취약 색각 분석 결과에 따른 맞춤형 보정 필터가 적용되었습니다.</p>' : ''}
+        ${isChallenge && filter.type !== 'default' ? '<p class="text-indigo-600 text-xs sm:text-sm font-bold mt-2">✨ 취약 색각 분석 결과에 따른 맞춤형 보정 필터가 적용되었습니다.</p>' : ''}
       </div>
 
       <!-- Color Display — Always Side-by-Side for intuitive comparison -->
@@ -92,7 +93,7 @@ export function renderRgbMatchStage() {
     const sBox = document.createElement("div");
     sBox.classList.add("glass-panel", "px-3.5", "sm:px-6", "py-2", "sm:py-3", "flex", "items-center", "gap-3", "sm:gap-4", "w-full", "bg-white/60", "border", "border-stone-200/60", "rounded-xl", "shadow-xs");
     sBox.innerHTML = `
-      <label class="${labelClass} display-font font-black w-6 sm:w-8 text-xl sm:text-2xl text-center">${colorLabel.toUpperCase()}</label>
+      <label for="${id}-slider" class="${labelClass} display-font font-black w-6 sm:w-8 text-xl sm:text-2xl text-center">${colorLabel.toUpperCase()}</label>
       <div class="flex-1 flex items-center gap-2.5 sm:gap-4">
         <input type="range" id="${id}-slider" min="0" max="255" value="128"
                class="w-full h-2 sm:h-2.5 rounded-lg appearance-none cursor-pointer touch-pan-x"
@@ -104,9 +105,9 @@ export function renderRgbMatchStage() {
   };
 
   function updateMix() {
-    const rInput = document.getElementById("r-slider");
-    const gInput = document.getElementById("g-slider");
-    const bInput = document.getElementById("b-slider");
+    const rInput = wrapper.querySelector("#r-slider");
+    const gInput = wrapper.querySelector("#g-slider");
+    const bInput = wrapper.querySelector("#b-slider");
 
     rInput.style.setProperty('--val', (rInput.value / 255) * 100);
     gInput.style.setProperty('--val', (gInput.value / 255) * 100);
@@ -116,17 +117,13 @@ export function renderRgbMatchStage() {
     const g = parseInt(gInput.value);
     const b = parseInt(bInput.value);
 
-    let displayR = r, displayG = g, displayB = b;
-    if (isChallenge) {
-      const [corrR, corrG, corrB] = applyDaltonizeToColor(r, g, b, state.weakness, 0.5, 'correct', 1.0);
-      displayR = corrR; displayG = corrG; displayB = corrB;
-    }
+    const { r: displayR, g: displayG, b: displayB } = toDisplayRgb({ r, g, b }, filter);
 
-    document.getElementById("user-mix").style.background = `rgb(${displayR}, ${displayG}, ${displayB})`;
-    document.getElementById("r-val").textContent = r;
-    document.getElementById("g-val").textContent = g;
-    document.getElementById("b-val").textContent = b;
-    document.getElementById("user-rgb-val").textContent = `RGB(${r}, ${g}, ${b})`;
+    wrapper.querySelector("#user-mix").style.background = `rgb(${displayR}, ${displayG}, ${displayB})`;
+    wrapper.querySelector("#r-val").textContent = r;
+    wrapper.querySelector("#g-val").textContent = g;
+    wrapper.querySelector("#b-val").textContent = b;
+    wrapper.querySelector("#user-rgb-val").textContent = `RGB(${r}, ${g}, ${b})`;
   }
 
   slidersBox.appendChild(createSlider('r', 'r'));
@@ -135,37 +132,41 @@ export function renderRgbMatchStage() {
 
   // Bind slider events
   ['r', 'g', 'b'].forEach(ch => {
-    document.getElementById(`${ch}-slider`).oninput = updateMix;
+    wrapper.querySelector(`#${ch}-slider`).oninput = updateMix;
   });
   
   // Initialize initial mix color
   updateMix();
 
-  document.getElementById("match-btn").onclick = () => {
-    const r = parseInt(document.getElementById("r-slider").value);
-    const g = parseInt(document.getElementById("g-slider").value);
-    const b = parseInt(document.getElementById("b-slider").value);
-    const distance = Math.sqrt(Math.pow(r - targetR, 2) + Math.pow(g - targetG, 2) + Math.pow(b - targetB, 2));
-    const threshold = 40;
-    const isCorrect = distance < threshold;
+  const displayedRgb = swatch => {
+    const [r, g, b] = getComputedStyle(swatch).backgroundColor.match(/[\d.]+/g).map(Number);
+    return { r, g, b };
+  };
 
-    let scoreEarned = 0;
-    if (isChallenge) {
-      if (distance <= 40) {
-        scoreEarned = 20;
-      } else if (distance >= 120) {
-        scoreEarned = 0;
-      } else {
-        scoreEarned = Math.round(20 - ((distance - 40) * (20 / 80)));
-      }
-    }
+  wrapper.querySelector("#match-btn").onclick = () => {
+    if (!acceptSubmission()) return;
+    wrapper.querySelectorAll('button, input').forEach(control => { control.disabled = true; });
+    const r = parseInt(wrapper.querySelector("#r-slider").value);
+    const g = parseInt(wrapper.querySelector("#g-slider").value);
+    const b = parseInt(wrapper.querySelector("#b-slider").value);
+    // Keep the existing 150ms transition, and grade its visible color now.
+    const grade = gradeDisplayedRgb(
+      displayedRgb(wrapper.querySelector('.color-swatch')),
+      displayedRgb(wrapper.querySelector('#user-mix'))
+    );
+    const { distance, threshold, isCorrect } = grade;
+    const scoreEarned = isChallenge ? grade.scoreEarned : 0;
 
     const historyEntry = {
       type: 'rgb',
-      stage: state.stageNumber,
-      correct: { r: targetR, g: targetG, b: targetB },
+      stage: stageNumber,
+      correct: target,
       user: { r, g, b },
-      distance: Math.round(distance),
+      displayCorrect: grade.displayCorrect,
+      displayUser: grade.displayUser,
+      filter,
+      scoringVersion: grade.scoringVersion,
+      distance: Number(distance.toFixed(2)),
       threshold: threshold,
       isCorrect,
       scoreEarned

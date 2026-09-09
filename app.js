@@ -11,6 +11,7 @@ import { renderChallengeIntro } from './js/stages/challengeIntro.js';
 import { renderHomeStage } from './js/stages/home.js';
 import { initCustomCursor } from './js/effects/cursor.js';
 import { isHoverPointerDevice } from './js/utils/device.js';
+import { beginSession, currentSession, finishSession, remainingSeconds } from './js/utils/session.js';
 
 // ==========================================
 // 이펙트 시스템 및 로드 라이프사이클 초기화
@@ -23,26 +24,43 @@ function triggerAppLoaded() {
 }
 
 function initEffects() {
-  // Load Three.js dynamically using ES Modules
-  import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js')
+  const background = document.getElementById('webgl-bg');
+  // The existing design hides this canvas. Do not load/render an invisible effect.
+  if (background && getComputedStyle(background).display !== 'none') {
+    import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js')
     .then(THREE => {
       window.THREE = THREE;
       initLiquidGlass();
-      triggerAppLoaded();
     })
     .catch(err => {
       console.warn('Three.js ES module failed to load, skipping WebGL effects', err);
-      triggerAppLoaded();
     });
+  }
+  // Retain the original home entrance sequence without waiting for decoration.
+  queueMicrotask(triggerAppLoaded);
 
   // Init cursor glow & interactions (no Three.js dependency)
   initInteractions();
 
   // Custom cursor with particle effects — only on hover-capable (non-touch) devices
-  if (isHoverPointerDevice()) {
-    document.documentElement.style.cursor = 'none';
-    initCustomCursor();
-  }
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let destroyCursor = null;
+  const updateCursor = () => {
+    destroyCursor?.();
+    destroyCursor = null;
+    if (isHoverPointerDevice() && !motion.matches) {
+      try {
+        destroyCursor = initCustomCursor();
+        document.documentElement.style.cursor = 'none';
+      } catch (error) {
+        document.getElementById('cursor-canvas')?.remove();
+        document.documentElement.style.cursor = '';
+        console.warn('Custom cursor unavailable; using the system cursor', error);
+      }
+    }
+  };
+  updateCursor();
+  motion.addEventListener('change', () => { updateCursor(); refreshInteractions(); });
 }
 
 // ==========================================
@@ -143,31 +161,43 @@ function generateChallengeSequence() {
   return seq.sort(() => Math.random() - 0.5);
 }
 
-let isTransitioning = false;
+let transitionId = 0;
+let transitionTimer = null;
+let inTransitionCallback = false;
 function transitionPage(callback) {
   const appEl = document.getElementById('app');
-  if (!appEl || isTransitioning) {
+  if (!appEl || inTransitionCallback) {
     callback();
     return;
   }
-  isTransitioning = true;
+  const id = ++transitionId;
+  const session = currentSession();
+  clearTimeout(transitionTimer);
   appEl.style.opacity = '0';
   appEl.style.filter = 'blur(12px)';
   appEl.style.transform = 'scale(0.98)';
-  setTimeout(() => {
-    callback();
+  transitionTimer = setTimeout(() => {
+    if (id !== transitionId || session !== currentSession()) return;
+    window.cleanupColorSort?.();
+    inTransitionCallback = true;
+    try { callback(); } finally { inTransitionCallback = false; }
     requestAnimationFrame(() => {
+      if (id !== transitionId || session !== currentSession()) return;
       appEl.style.opacity = '1';
       appEl.style.filter = 'blur(0px)';
       appEl.style.transform = 'scale(1)';
-      setTimeout(() => { isTransitioning = false; }, 500);
     });
-  }, 400);
+  }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400);
 }
 
 let isInitialLoad = true;
 
 export function setMode(newMode) {
+  if (!['home', 'test', 'lab', 'challenge'].includes(newMode)) return;
+  beginSession();
+  if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+  window.cleanupColorLab?.();
+  window.cleanupColorSort?.();
   const runMode = () => {
     if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
     const timerUI = document.getElementById('challenge-timer');
@@ -215,6 +245,7 @@ export function setMode(newMode) {
       renderHomeStage();
       requestAnimationFrame(() => refreshInteractions());
     } else if (newMode === 'test') {
+      state.weakness = 'default';
       state.stageNumber = 1;
       state.score = 0;
       state.userHistory = [];
@@ -245,6 +276,8 @@ export function setMode(newMode) {
 window.setMode = setMode;
 
 window.startChallengeTimer = function () {
+  if (state.mode !== 'challenge' || state.challengeDeadline !== null) return;
+  beginSession();
   state.challengeSequence = generateChallengeSequence();
   state.stageNumber = 1;
   state.challengeTimeLeft = 180;
@@ -284,8 +317,11 @@ window.startChallengeTimer = function () {
 
   if (state.timerId) clearInterval(state.timerId);
 
+  const session = currentSession();
+  state.challengeDeadline = performance.now() + TOTAL_TIME * 1000;
   state.timerId = setInterval(() => {
-    state.challengeTimeLeft--;
+    if (session !== currentSession() || state.mode !== 'challenge') return;
+    state.challengeTimeLeft = remainingSeconds(state.challengeDeadline);
 
     if (state.challengeTimeLeft <= 0) {
       clearInterval(state.timerId);
@@ -293,7 +329,7 @@ window.startChallengeTimer = function () {
       state.challengeTimeLeft = 0;
       text.textContent = '00:00';
       pie.setAttribute('stroke-dashoffset', CIRCUMFERENCE);
-      renderFinalScore(); // 강제 종료
+      showFinalScore();
     } else {
       const m = String(Math.floor(state.challengeTimeLeft / 60)).padStart(2, '0');
       const s = String(state.challengeTimeLeft % 60).padStart(2, '0');
@@ -302,17 +338,34 @@ window.startChallengeTimer = function () {
       const offset = CIRCUMFERENCE * (1 - (state.challengeTimeLeft / TOTAL_TIME));
       pie.setAttribute('stroke-dashoffset', offset);
 
-      if (state.challengeTimeLeft === 30) {
+      if (state.challengeTimeLeft <= 30) {
         pie.setAttribute('stroke', '#ef4444'); // rose-500
         text.classList.remove('text-amber-600', 'border-amber-100');
         text.classList.add('text-rose-600', 'border-rose-200');
         timerUI.classList.add('animate-pulse');
       }
     }
-  }, 1000);
+  }, 250);
 
   renderNextStage();
 };
+
+function showFinalScore() {
+  if (!finishSession()) return;
+  ++transitionId;
+  clearTimeout(transitionTimer);
+  if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+  if (state.challengeDeadline !== null) state.challengeTimeLeft = remainingSeconds(state.challengeDeadline);
+  window.cleanupColorSort?.();
+  removeProgressBar();
+  renderFinalScore();
+  const appEl = document.getElementById('app');
+  if (appEl) {
+    appEl.style.opacity = '1';
+    appEl.style.filter = 'blur(0px)';
+    appEl.style.transform = 'scale(1)';
+  }
+}
 
 // ==========================================
 // 메인 컨트롤 함수 (다른 모듈에서 export해서 사용)
@@ -349,7 +402,7 @@ export function renderNextStage() {
     else if (state.stageNumber <= 15) renderRgbMatchStage();
     else {
       removeProgressBar();
-      renderFinalScore();
+      showFinalScore();
       requestAnimationFrame(() => refreshInteractions());
       return;
     }
@@ -364,7 +417,7 @@ export function renderNextStage() {
       const timerUI = document.getElementById('challenge-timer');
       if (timerUI) timerUI.style.display = 'none';
       removeProgressBar();
-      renderFinalScore();
+      showFinalScore();
       requestAnimationFrame(() => refreshInteractions());
       return;
     }

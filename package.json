@@ -4,13 +4,22 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:css": "tailwindcss -i tailwind-input.css -o tailwind.css --minify",
+    "test:unit": "node --experimental-vm-modules --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "test:visual": "node tests/visual.mjs",
+    "test": "npm run test:unit && npm run test:e2e",
+    "verify": "npm run build:css && npm test && npm run test:visual"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "pixelmatch": "7.1.0",
+    "pngjs": "7.0.0",
+    "sortablejs": "1.15.6",
     "tailwindcss": "^3.4.17"
   }
 }

@@ -243,6 +243,9 @@ export function renderDesktopHome() {
   if (isCurrentlyLoading) {
     const loadStartTime = Date.now();
     const MIN_LOAD_TIME = 1500;
+    let disposed = false;
+    let entranceTimer = null;
+    let unlockTimer = null;
 
     const preventDefault = (e) => e.preventDefault();
     const preventKeyScroll = (e) => {
@@ -257,6 +260,10 @@ export function renderDesktopHome() {
     window.addEventListener('keydown', preventKeyScroll, { passive: false });
 
     window.cleanupHomeLoadingScrollLock = () => {
+      disposed = true;
+      clearTimeout(entranceTimer);
+      clearTimeout(unlockTimer);
+      document.removeEventListener('app-loaded', onAppLoaded);
       if (appEl) {
         appEl.removeEventListener('wheel', preventDefault);
         appEl.removeEventListener('touchmove', preventDefault);
@@ -268,7 +275,8 @@ export function renderDesktopHome() {
       const elapsed = Date.now() - loadStartTime;
       const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
 
-      setTimeout(() => {
+      entranceTimer = setTimeout(() => {
+        if (disposed) return;
         const circle = document.getElementById('home-cover-circle');
         if (circle) circle.classList.remove('loading-circle');
 
@@ -298,7 +306,8 @@ export function renderDesktopHome() {
           scroll.classList.add('animate-focus-in');
         }
 
-        setTimeout(() => {
+        unlockTimer = setTimeout(() => {
+          if (disposed) return;
           if (typeof window.cleanupHomeLoadingScrollLock === 'function') {
             window.cleanupHomeLoadingScrollLock();
             window.cleanupHomeLoadingScrollLock = null;

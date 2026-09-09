@@ -10,6 +10,7 @@ export const state = {
   challengeTotalScore: 0,
   challengeTimeLeft: 180,
   timerId: null,
+  challengeDeadline: null,
   challengeHistory: []
 };
 

@@ -16,6 +16,8 @@ export function renderColorLab(initialWeakness) {
   }
 
   const core = new ColorLabCore(initialWeakness);
+  const events = new AbortController();
+  const listen = (target, type, callback) => target?.addEventListener(type, callback, { signal: events.signal });
 
   container.innerHTML = "";
   const wrapper = document.createElement("div");
@@ -106,7 +108,7 @@ export function renderColorLab(initialWeakness) {
   core.initCanvases(canvasOrig, canvasCorr);
 
   // Initialize Desktop and Mobile UI Modules
-  initDesktopControls(core);
+  const cleanupDesktop = initDesktopControls(core);
   const mobileHandlers = initMobileControls(core);
 
   // Setup File Upload & Drag-and-Drop
@@ -114,29 +116,41 @@ export function renderColorLab(initialWeakness) {
   const fileInput = document.getElementById("image-input");
 
   if (uploadArea && fileInput) {
-    uploadArea.addEventListener("click", (e) => {
+    uploadArea.tabIndex = 0;
+    uploadArea.setAttribute('role', 'button');
+    uploadArea.setAttribute('aria-label', '이미지 업로드');
+    fileInput.setAttribute('aria-label', '이미지 파일 선택');
+    listen(uploadArea, "click", (e) => {
       // If clicked sample buttons, prevent triggering file picker
-      if (e.target.closest("#btn-sample-1") || e.target.closest("#btn-sample-2")) return;
+      if (e.target === fileInput || e.target.closest("#btn-sample-1") || e.target.closest("#btn-sample-2")) return;
       fileInput.click();
     });
-
-    fileInput.addEventListener("change", (e) => {
-      if (e.target.files.length > 0) {
-        core.handleFile(e.target.files[0], mobileHandlers.onImageLoaded);
+    listen(uploadArea, 'keydown', (e) => {
+      if (e.target === uploadArea && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        if (!e.repeat) fileInput.click();
       }
     });
 
-    uploadArea.addEventListener("dragover", (e) => {
+    listen(fileInput, "change", (e) => {
+      if (e.target.files.length > 0) {
+        core.handleFile(e.target.files[0], mobileHandlers.onImageLoaded);
+      }
+      // Choosing the same file again must still dispatch a change event.
+      fileInput.value = '';
+    });
+
+    listen(uploadArea, "dragover", (e) => {
       e.preventDefault();
       uploadArea.classList.add("bg-stone-200/40");
     });
-    uploadArea.addEventListener("dragleave", () => {
+    listen(uploadArea, "dragleave", () => {
       uploadArea.classList.remove("bg-stone-200/40");
     });
-    uploadArea.addEventListener("drop", (e) => {
+    listen(uploadArea, "drop", (e) => {
       e.preventDefault();
       uploadArea.classList.remove("bg-stone-200/40");
-      if (e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer?.files.length > 0) {
         core.handleFile(e.dataTransfer.files[0], mobileHandlers.onImageLoaded);
       }
     });
@@ -147,13 +161,13 @@ export function renderColorLab(initialWeakness) {
   const btnSample2 = document.getElementById("btn-sample-2");
 
   if (btnSample1) {
-    btnSample1.addEventListener("click", (e) => {
+    listen(btnSample1, "click", (e) => {
       e.stopPropagation();
       core.loadSampleImage("images/plate1.png", mobileHandlers.onImageLoaded);
     });
   }
   if (btnSample2) {
-    btnSample2.addEventListener("click", (e) => {
+    listen(btnSample2, "click", (e) => {
       e.stopPropagation();
       core.loadSampleImage("images/plate2.png", mobileHandlers.onImageLoaded);
     });
@@ -163,10 +177,12 @@ export function renderColorLab(initialWeakness) {
   const onResize = () => {
     core.adjustCanvasSize();
   };
-  window.addEventListener('resize', onResize);
+  listen(window, 'resize', onResize);
 
   window.cleanupColorLab = () => {
-    window.removeEventListener('resize', onResize);
+    events.abort();
+    cleanupDesktop();
     mobileHandlers.cleanup();
+    core.dispose();
   };
 }

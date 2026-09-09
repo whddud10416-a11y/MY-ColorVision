@@ -2,12 +2,18 @@ import { state, container } from '../state.js';
 import { sortStageThemes } from '../data.js';
 import { renderNextStage } from '../../app.js';
 import { hslToRgb, applyDaltonizeToColor } from '../utils/daltonize.js';
+import { createSubmissionGuard } from '../utils/session.js';
+import { SCORING_VERSION } from '../utils/scoring.js';
 
 export function renderColorSortStage() {
+  if (typeof window.cleanupColorSort === 'function') window.cleanupColorSort();
+  const acceptSubmission = createSubmissionGuard();
+  const stageNumber = state.stageNumber;
   const isChallenge = state.mode === 'challenge';
-  const themeIdx = isChallenge ? (Math.floor(Math.random() * 5) + 4) : state.stageNumber;
+  const weakness = state.weakness;
+  const themeIdx = isChallenge ? (Math.floor(Math.random() * 5) + 4) : stageNumber;
   const theme = sortStageThemes[themeIdx];
-  const stageNum = isChallenge ? state.stageNumber : state.stageNumber - 3;
+  const stageNum = isChallenge ? stageNumber : stageNumber - 3;
   const totalStages = 5;
 
   container.innerHTML = `
@@ -24,7 +30,7 @@ export function renderColorSortStage() {
           <h2 class="display-font text-xl sm:text-3xl lg:text-4xl font-bold text-stone-800 mb-2 sm:mb-3 tracking-tight break-keep">${theme.name}</h2>
           <p class="text-stone-500 text-xs sm:text-base font-medium break-keep mb-1">${theme.desc}</p>
           <p class="text-stone-400 text-[11px] sm:text-xs break-keep">💡 큐브를 터치해 서로 교환하거나 직접 드래그하여 순서를 맞추세요.</p>
-          ${isChallenge && state.weakness !== 'default' ? '<p class="text-indigo-600 text-xs sm:text-sm font-bold mt-2">✨ 취약 색각 분석 결과에 따른 맞춤형 보정 필터가 적용되었습니다.</p>' : ''}
+          ${isChallenge && weakness !== 'default' ? '<p class="text-indigo-600 text-xs sm:text-sm font-bold mt-2">✨ 취약 색각 분석 결과에 따른 맞춤형 보정 필터가 적용되었습니다.</p>' : ''}
         </div>
 
         <!-- Color Cubes — Wide -->
@@ -40,7 +46,22 @@ export function renderColorSortStage() {
   `;
 
   const box = document.getElementById("sort-box");
+  box.setAttribute('role', 'group');
+  box.setAttribute('aria-label', '색상 정렬. 방향키로 이동하고 Enter 또는 Space로 두 칸을 선택해 교환합니다. Escape로 선택을 취소합니다.');
   let selectedCube = null;
+  let sortable = null;
+  let disposed = false;
+  let submitted = false;
+  const cubes = () => Array.from(box.querySelectorAll('.color-cube'));
+  const updateSlotLabels = () => cubes().forEach((cube, index) => {
+    cube.setAttribute('aria-label', `${index + 1}번 칸`);
+  });
+  const clearSelection = () => {
+    if (!selectedCube) return;
+    selectedCube.classList.remove('selected-cube');
+    selectedCube.setAttribute('aria-pressed', 'false');
+    selectedCube = null;
+  };
 
   const currentHues = [...theme.hues];
   for (let i = currentHues.length - 1; i > 0; i--) {
@@ -53,7 +74,7 @@ export function renderColorSortStage() {
     
     if (isChallenge) {
       const [r, g, b] = hslToRgb(h, 70, 50);
-      const [corrR, corrG, corrB] = applyDaltonizeToColor(r, g, b, state.weakness, 0.5, 'correct', 1.0);
+      const [corrR, corrG, corrB] = applyDaltonizeToColor(r, g, b, weakness, 0.5, 'correct', 1.0);
       d.style.background = `rgb(${corrR}, ${corrG}, ${corrB})`;
     } else {
       d.style.background = `hsl(${h}, 70%, 50%)`;
@@ -68,15 +89,19 @@ export function renderColorSortStage() {
     );
     d.style.setProperty('--stagger', `${200 + idx * 60}ms`);
     d.dataset.hue = h;
-    d.setAttribute("aria-label", `Color angle ${h} degree cube`);
+    d.setAttribute('role', 'button');
+    d.tabIndex = 0;
+    d.setAttribute('aria-label', `${idx + 1}번 칸`);
+    d.setAttribute('aria-pressed', 'false');
 
     d.onclick = () => {
+      if (disposed || submitted || !box.isConnected) return;
       if (selectedCube === null) {
         selectedCube = d;
         d.classList.add("selected-cube");
+        d.setAttribute('aria-pressed', 'true');
       } else if (selectedCube === d) {
-        d.classList.remove("selected-cube");
-        selectedCube = null;
+        clearSelection();
       } else {
         const temp = document.createElement("div");
         d.parentNode.insertBefore(temp, d);
@@ -84,8 +109,28 @@ export function renderColorSortStage() {
         temp.parentNode.insertBefore(selectedCube, temp);
         temp.remove();
 
-        selectedCube.classList.remove("selected-cube");
-        selectedCube = null;
+        clearSelection();
+        updateSlotLabels();
+      }
+    };
+
+    d.onkeydown = event => {
+      if (disposed || submitted) return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (!event.repeat) d.click();
+        // Swapping DOM nodes must not lose the keyboard user's position.
+        d.focus();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        clearSelection();
+      } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault();
+        const ordered = cubes();
+        const index = ordered.indexOf(d);
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? ordered.length - 1 :
+          index + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1);
+        ordered[Math.max(0, Math.min(ordered.length - 1, next))].focus();
       }
     };
 
@@ -93,7 +138,15 @@ export function renderColorSortStage() {
   });
 
   document.getElementById("confirm-sort-btn").onclick = () => {
-    const currentOrder = Array.from(box.querySelectorAll('div')).map(d => parseInt(d.dataset.hue));
+    if (!acceptSubmission()) return;
+    submitted = true;
+    document.getElementById('confirm-sort-btn').disabled = true;
+    cubes().forEach(cube => {
+      cube.setAttribute('aria-disabled', 'true');
+      cube.tabIndex = -1;
+    });
+    if (sortable) sortable.option('disabled', true);
+    const currentOrder = cubes().map(d => parseInt(d.dataset.hue));
     const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(theme.hues) ||
       JSON.stringify(currentOrder) === JSON.stringify([...theme.hues].reverse());
 
@@ -111,12 +164,13 @@ export function renderColorSortStage() {
 
     const historyEntry = {
       type: 'sort',
-      stage: state.stageNumber,
+      stage: stageNumber,
       themeName: theme.name,
       correct: theme.hues,
       user: currentOrder,
       isCorrect,
-      scoreEarned
+      scoreEarned,
+      scoringVersion: SCORING_VERSION
     };
 
     if (isChallenge) {
@@ -132,15 +186,28 @@ export function renderColorSortStage() {
     renderNextStage();
   };
 
-  new Sortable(box, {
-    animation: 200,
-    ghostClass: 'opacity-50',
-    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-    onStart: () => {
-      if (selectedCube) {
-        selectedCube.classList.remove("selected-cube");
-        selectedCube = null;
-      }
+  // Tap/keyboard swapping remains available when the optional CDN fails.
+  if (typeof window.Sortable === 'function') {
+    try {
+      sortable = new window.Sortable(box, {
+        animation: 200,
+        ghostClass: 'opacity-50',
+        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        onStart: clearSelection,
+        onEnd: updateSlotLabels
+      });
+    } catch {
+      sortable = null;
     }
-  });
+  }
+
+  const cleanup = () => {
+    if (disposed) return;
+    disposed = true;
+    if (sortable) sortable.destroy();
+    sortable = null;
+    cubes().forEach(cube => { cube.onclick = null; cube.onkeydown = null; });
+    if (window.cleanupColorSort === cleanup) window.cleanupColorSort = null;
+  };
+  window.cleanupColorSort = cleanup;
 }
