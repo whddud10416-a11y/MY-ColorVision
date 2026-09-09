@@ -10,7 +10,7 @@
     "test:visual": "node tests/visual.mjs",
     "test": "npm run test:unit && npm run test:e2e",
     "verify": "npm run build:css && npm test && npm run test:visual",
-    "postinstall": "node -e \"if(process.platform==='linux'){try{require('child_process').execSync('sudo apt-get update -y && npx playwright install-deps chromium',{stdio:'inherit'});}catch(e){console.warn(e);}}\""
+    "postinstall": "node -e \"if(process.platform==='linux'){try{require('child_process').execSync('sudo rm -f /etc/apt/sources.list.d/google-chrome.list && sudo apt-get update -y && npx playwright install-deps chromium',{stdio:'inherit'});}catch(e){console.warn(e);}}\""
   },
   "keywords": [],
   "author": "",
