@@ -3,6 +3,7 @@
  * Core engine for Color Lab: state management, canvas rendering, pixel math, and image file loading.
  */
 import { processPixels } from '../utils/daltonize.js';
+import { boundedImageSize, validateImageFile } from '../utils/imageInput.js';
 
 export class ColorLabCore {
   constructor(initialWeakness = 'default') {
@@ -10,7 +11,7 @@ export class ColorLabCore {
       ? initialWeakness
       : 'default';
     this.currentSeverity = 0.5;
-    this.currentMode = (initialWeakness !== 'default') ? 'correct' : 'simulate';
+    this.currentMode = this.currentType !== 'default' ? 'correct' : 'simulate';
     this.customIntensity = 1.0;
     this.originalImageObj = null;
 
@@ -21,6 +22,9 @@ export class ColorLabCore {
 
     this.rafId = null;
     this.listeners = new Set();
+    this.disposed = false;
+    this.imageRequestId = 0;
+    this.cancelPendingImage = null;
   }
 
   initCanvases(canvasOrigEl, canvasCorrEl) {
@@ -36,6 +40,7 @@ export class ColorLabCore {
   }
 
   notify() {
+    if (this.disposed) return;
     for (const cb of this.listeners) {
       cb(this);
     }
@@ -55,10 +60,12 @@ export class ColorLabCore {
   }
 
   setIntensity(intensity) {
+    if (this.disposed) return;
     this.customIntensity = intensity;
     if (this.rafId === null) {
       this.rafId = requestAnimationFrame(() => {
         this.rafId = null;
+        if (this.disposed) return;
         this.applyCorrection();
       });
     }
@@ -80,12 +87,7 @@ export class ColorLabCore {
   }
 
   setupCanvases(img) {
-    const MAX_WIDTH = 1200;
-    let w = img.width, h = img.height;
-    if (w > MAX_WIDTH) {
-      h = Math.floor(h * (MAX_WIDTH / w));
-      w = MAX_WIDTH;
-    }
+    const { width: w, height: h } = boundedImageSize(img.naturalWidth || img.width, img.naturalHeight || img.height);
     this.canvasOrig.width = w;
     this.canvasOrig.height = h;
     this.canvasCorr.width = w;
@@ -94,7 +96,7 @@ export class ColorLabCore {
   }
 
   adjustCanvasSize() {
-    if (!this.originalImageObj || !this.canvasOrig || !this.canvasCorr) return;
+    if (this.disposed || !this.originalImageObj || !this.canvasOrig || !this.canvasCorr) return;
 
     const isDesktop = window.innerWidth >= 1024;
     const canvasContainer = document.getElementById("canvas-container");
@@ -185,7 +187,7 @@ export class ColorLabCore {
   }
 
   applyCorrection() {
-    if (!this.originalImageObj || !this.ctxCorr || !this.canvasOrig || !this.canvasCorr) return;
+    if (this.disposed || !this.originalImageObj || !this.ctxCorr || !this.canvasOrig || !this.canvasCorr) return;
     this.ctxCorr.drawImage(this.canvasOrig, 0, 0);
     const imageData = this.ctxCorr.getImageData(0, 0, this.canvasCorr.width, this.canvasCorr.height);
     const processed = processPixels(imageData, this.currentType, this.currentSeverity, this.currentMode, this.customIntensity);
@@ -193,8 +195,9 @@ export class ColorLabCore {
   }
 
   onImageReady(img, onLoadedCallback) {
-    this.originalImageObj = img;
+    if (this.disposed) return;
     this.setupCanvases(img);
+    this.originalImageObj = img;
 
     const uploadArea = document.getElementById("upload-area");
     const labInterface = document.getElementById("lab-interface");
@@ -217,23 +220,77 @@ export class ColorLabCore {
     }
   }
 
-  handleFile(file, onLoadedCallback) {
-    if (!file || !file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => this.onImageReady(img, onLoadedCallback);
-      img.src = event.target.result;
+  beginImageRequest() {
+    this.imageRequestId += 1;
+    if (this.cancelPendingImage) this.cancelPendingImage();
+    this.cancelPendingImage = null;
+    return this.imageRequestId;
+  }
+
+  requestImage(src, onLoadedCallback, requestId, release = () => {}) {
+    if (this.disposed) { release(); return; }
+    const img = new Image();
+    let finished = false;
+    const current = () => !this.disposed && requestId === this.imageRequestId;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      img.onload = null;
+      img.onerror = null;
+      release();
+      if (this.cancelPendingImage === cancel) this.cancelPendingImage = null;
     };
-    reader.readAsDataURL(file);
+    const cancel = () => { finish(); img.src = ''; };
+    this.cancelPendingImage = cancel;
+    img.onload = () => {
+      if (!current()) { finish(); return; }
+      try {
+        // Validate before the canvas allocation or any visible interface change.
+        boundedImageSize(img.naturalWidth || img.width, img.naturalHeight || img.height);
+        this.onImageReady(img, onLoadedCallback);
+      } catch (error) {
+        if (current()) alert(error.message || '이미지를 처리할 수 없습니다. 다른 이미지를 선택해주세요.');
+      } finally {
+        finish();
+      }
+    };
+    img.onerror = () => {
+      if (current()) alert('이미지를 불러올 수 없습니다. 파일이 손상되었거나 지원하지 않는 형식입니다.');
+      finish();
+    };
+    try {
+      img.src = src;
+    } catch (error) {
+      finish();
+      if (current()) alert('이미지를 불러올 수 없습니다. 다른 이미지를 선택해주세요.');
+    }
+  }
+
+  handleFile(file, onLoadedCallback) {
+    if (this.disposed) return;
+    const requestId = this.beginImageRequest();
+    try {
+      validateImageFile(file);
+      const src = URL.createObjectURL(file);
+      this.requestImage(src, onLoadedCallback, requestId, () => URL.revokeObjectURL(src));
+    } catch (error) {
+      alert(error.message || '이미지를 읽을 수 없습니다. 다른 이미지를 선택해주세요.');
+    }
   }
 
   loadSampleImage(src, onLoadedCallback) {
-    const img = new Image();
-    img.onload = () => this.onImageReady(img, onLoadedCallback);
-    img.src = src;
+    if (this.disposed) return;
+    this.requestImage(src, onLoadedCallback, this.beginImageRequest());
+  }
+
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.beginImageRequest();
+    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
+    this.listeners.clear();
+    this.originalImageObj = null;
+    this.canvasOrig = this.canvasCorr = this.ctxOrig = this.ctxCorr = null;
   }
 }

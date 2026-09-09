@@ -18,6 +18,7 @@ export function initCustomCursor() {
   `;
   document.body.appendChild(canvas);
   const ctx = canvas.getContext('2d');
+  if (!ctx) { canvas.remove(); throw new Error('Canvas 2D is unavailable'); }
 
   function resize() {
     canvas.width  = window.innerWidth;
@@ -51,15 +52,17 @@ export function initCustomCursor() {
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mousedown', onDown);
   document.addEventListener('mouseup',   onUp);
-  document.addEventListener('mouseleave', () => {
+  const onLeave = () => {
     mouse.x = -200;
     mouse.y = -200;
-  });
+  };
+  document.addEventListener('mouseleave', onLeave);
 
-  document.addEventListener('mouseover', (e) => {
+  const onOver = (e) => {
     const el = e.target.closest('button, a, [role="button"], input, label, [draggable="true"], .color-cube, .cvd-btn, .flip-card');
     isHover = !!el;
-  });
+  };
+  document.addEventListener('mouseover', onOver);
 
   function onMove(e) {
     mouse.x = e.clientX;
@@ -266,5 +269,8 @@ export function initCustomCursor() {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mousedown', onDown);
     document.removeEventListener('mouseup',   onUp);
+    document.removeEventListener('mouseleave', onLeave);
+    document.removeEventListener('mouseover', onOver);
+    window.removeEventListener('resize', resize);
   };
 }

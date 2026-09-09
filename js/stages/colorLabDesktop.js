@@ -82,7 +82,9 @@ export function renderDesktopControlsHTML(core) {
 
 export function initDesktopControls(core) {
   const container = document.getElementById("desktop-controls");
-  if (!container) return;
+  if (!container) return () => {};
+  const events = new AbortController();
+  const listen = (target, type, callback) => target?.addEventListener(type, callback, { signal: events.signal });
 
   const simBtn = document.getElementById("desktop-mode-sim-btn");
   const corBtn = document.getElementById("desktop-mode-cor-btn");
@@ -90,9 +92,11 @@ export function initDesktopControls(core) {
   const slider = document.getElementById("desktop-intensity-slider");
   const valLabel = document.getElementById("desktop-intensity-val");
   const resultLabel = document.getElementById("result-label");
+  if (slider) slider.setAttribute('aria-label', '적용 강도');
 
   function updateActiveButton() {
     presetBtns.forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.type === core.currentType && parseFloat(b.dataset.severity) === core.currentSeverity));
       b.className = "preset-btn py-1.5 px-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] border transition-all bg-stone-200 text-stone-500 border-transparent hover:bg-stone-300 w-full";
       if (b.dataset.type === core.currentType && parseFloat(b.dataset.severity) === core.currentSeverity) {
         b.classList.remove('bg-stone-200', 'text-stone-500', 'border-transparent');
@@ -110,6 +114,8 @@ export function initDesktopControls(core) {
   }
 
   function updateModeUI() {
+    if (simBtn) simBtn.setAttribute('aria-pressed', String(core.currentMode === 'simulate'));
+    if (corBtn) corBtn.setAttribute('aria-pressed', String(core.currentMode === 'correct'));
     if (core.currentMode === 'simulate') {
       if (simBtn) simBtn.className = "mode-simulate-btn bg-rose-50 border-2 border-rose-300 shadow-sm rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all hover:scale-[1.01]";
       if (corBtn) corBtn.className = "mode-correct-btn bg-stone-50 border-2 border-stone-200 rounded-xl p-2.5 sm:p-3 cursor-pointer flex items-center gap-3 transition-all opacity-60 hover:opacity-100 hover:bg-indigo-50";
@@ -127,13 +133,23 @@ export function initDesktopControls(core) {
     }
   }
 
-  if (simBtn) simBtn.addEventListener("click", () => core.setMode('simulate'));
-  if (corBtn) corBtn.addEventListener("click", () => core.setMode('correct'));
+  [[simBtn, 'simulate'], [corBtn, 'correct']].forEach(([button, mode]) => {
+    if (!button) return;
+    button.setAttribute('role', 'button');
+    button.tabIndex = 0;
+    listen(button, 'click', () => core.setMode(mode));
+    listen(button, 'keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (!event.repeat) core.setMode(mode);
+      }
+    });
+  });
 
   presetBtns.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const type = e.target.dataset.type;
-      const severity = parseFloat(e.target.dataset.severity);
+    listen(btn, "click", (e) => {
+      const type = e.currentTarget.dataset.type;
+      const severity = parseFloat(e.currentTarget.dataset.severity);
       if (type === 'default') {
         core.resetAll();
       } else {
@@ -143,7 +159,7 @@ export function initDesktopControls(core) {
   });
 
   if (slider) {
-    slider.addEventListener("input", (e) => {
+    listen(slider, "input", (e) => {
       const val = parseFloat(e.target.value);
       if (valLabel) valLabel.textContent = val.toFixed(2) + "x";
       slider.style.setProperty('--val', (val / 2) * 100);
@@ -152,7 +168,7 @@ export function initDesktopControls(core) {
   }
 
   // Subscribe to core updates
-  core.subscribe(() => {
+  const unsubscribe = core.subscribe(() => {
     updateActiveButton();
     updateModeUI();
     if (slider) {
@@ -167,4 +183,5 @@ export function initDesktopControls(core) {
   // Initial UI sync
   updateActiveButton();
   updateModeUI();
+  return () => { events.abort(); unsubscribe(); };
 }

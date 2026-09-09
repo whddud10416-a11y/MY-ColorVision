@@ -34,6 +34,14 @@ export function initMobileControls(core) {
       cleanup: () => {}
     };
   }
+  const events = new AbortController();
+  const listen = (target, type, callback) => target?.addEventListener(type, callback, { signal: events.signal });
+  let disposed = false;
+  let transitionTimer = null;
+  const clearTransition = () => {
+    if (transitionTimer !== null) clearTimeout(transitionTimer);
+    transitionTimer = null;
+  };
 
   // 1. FAB Button (mounted directly to body for fixed viewport stability)
   const fab = document.createElement("button");
@@ -41,6 +49,8 @@ export function initMobileControls(core) {
   fab.className = "fixed bottom-5 right-5 z-[9999] lg:hidden glow-button w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 ease-out hidden opacity-0 scale-75 pointer-events-none";
   fab.style.cssText = "position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important;";
   fab.setAttribute("aria-label", "필터 조절");
+  fab.setAttribute('aria-controls', 'mobile-control-dock');
+  fab.setAttribute('aria-expanded', 'false');
   fab.innerHTML = `<svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>`;
   document.body.appendChild(fab);
 
@@ -127,6 +137,9 @@ export function initMobileControls(core) {
     </div>
   `;
   document.body.appendChild(dock);
+  dock.setAttribute('role', 'group');
+  dock.setAttribute('aria-label', '색상 필터 조절');
+  dock.inert = true;
 
   // Wire elements
   const dockClose = document.getElementById("mobile-dock-close");
@@ -144,12 +157,22 @@ export function initMobileControls(core) {
   const btnG = document.getElementById("dock-btn-g");
   const btnB = document.getElementById("dock-btn-b");
   const btnReset = document.getElementById("dock-btn-reset");
+  slider?.setAttribute('aria-label', '적용 강도');
+  dockClose?.setAttribute('aria-label', '필터 조절 닫기');
+  btnReset?.setAttribute('aria-label', '필터 초기화');
+  intensityToggleBtn?.setAttribute('aria-controls', 'mobile-slider-panel');
+  intensityToggleBtn?.setAttribute('aria-expanded', 'false');
 
   // R, G, B Cone State Tracker: 0: Off, 1: 약 (0.5), 2: 맹 (1.0)
   let coneStates = { R: 0, G: 0, B: 0 };
   let isInternalUpdate = false;
 
   function renderConeButtons() {
+    [[btnR, 'R', '적색'], [btnG, 'G', '녹색'], [btnB, 'B', '청색']].forEach(([button, key, name]) => {
+      if (!button) return;
+      button.setAttribute('aria-pressed', String(coneStates[key] > 0));
+      button.setAttribute('aria-label', `${name} 필터: ${['해제', '색약', '색맹'][coneStates[key]]}`);
+    });
     if (btnR) {
       if (coneStates.R === 1) {
         btnR.className = "dock-cone-btn w-8 h-8 rounded-full border border-rose-500 bg-rose-500 text-white flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm shrink-0";
@@ -278,6 +301,8 @@ export function initMobileControls(core) {
   }
 
   function updateMobileModeUI() {
+    mobSimBtn?.setAttribute('aria-pressed', String(core.currentMode === 'simulate'));
+    mobCorBtn?.setAttribute('aria-pressed', String(core.currentMode === 'correct'));
     if (core.currentMode === 'simulate') {
       if (mobSimBtn) mobSimBtn.className = "mode-simulate-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all bg-white text-rose-700 shadow-xs whitespace-nowrap";
       if (mobCorBtn) mobCorBtn.className = "mode-correct-btn py-0.5 px-2 rounded-md text-[11px] font-bold transition-all text-stone-600 hover:text-stone-900 whitespace-nowrap";
@@ -289,10 +314,17 @@ export function initMobileControls(core) {
 
   // Transitions
   function openDock() {
+    if (disposed) return;
+    clearTransition();
+    fab.setAttribute('aria-expanded', 'true');
+    fab.inert = true;
+    dock.inert = false;
     if (fab) {
       fab.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
       fab.classList.add('opacity-0', 'scale-75', 'pointer-events-none');
-      setTimeout(() => {
+      transitionTimer = setTimeout(() => {
+        transitionTimer = null;
+        if (disposed) return;
         if (fab.classList.contains('opacity-0')) {
           fab.classList.add('hidden');
         }
@@ -308,10 +340,18 @@ export function initMobileControls(core) {
   }
 
   function closeDock() {
+    if (disposed) return;
+    clearTransition();
+    fab.setAttribute('aria-expanded', 'false');
+    fab.inert = false;
+    dock.inert = true;
+    intensityToggleBtn?.setAttribute('aria-expanded', 'false');
     if (dock) {
       dock.classList.remove('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
       dock.classList.add('opacity-0', 'scale-95', 'translate-y-3', 'pointer-events-none');
-      setTimeout(() => {
+      transitionTimer = setTimeout(() => {
+        transitionTimer = null;
+        if (disposed) return;
         if (dock.classList.contains('opacity-0')) {
           dock.classList.add('hidden');
           if (sliderPanel) sliderPanel.classList.add('hidden');
@@ -328,17 +368,31 @@ export function initMobileControls(core) {
   }
 
   // Event bindings
-  if (fab) fab.addEventListener("click", openDock);
-  if (dockClose) dockClose.addEventListener("click", closeDock);
+  listen(fab, "click", (event) => {
+    openDock();
+    if (event.detail === 0) mobSimBtn?.focus();
+  });
+  listen(dockClose, "click", (event) => {
+    closeDock();
+    if (event.detail === 0) fab.focus();
+  });
+  listen(dock, 'keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDock();
+      fab.focus();
+    }
+  });
 
   if (intensityToggleBtn && sliderPanel) {
-    intensityToggleBtn.addEventListener("click", () => {
+    listen(intensityToggleBtn, "click", () => {
       sliderPanel.classList.toggle("hidden");
+      intensityToggleBtn.setAttribute('aria-expanded', String(!sliderPanel.classList.contains('hidden')));
     });
   }
 
-  if (mobSimBtn) mobSimBtn.addEventListener("click", () => core.setMode('simulate'));
-  if (mobCorBtn) mobCorBtn.addEventListener("click", () => core.setMode('correct'));
+  listen(mobSimBtn, "click", () => core.setMode('simulate'));
+  listen(mobCorBtn, "click", () => core.setMode('correct'));
 
   function handleConeClick(c) {
     const activeKeys = ['R', 'G', 'B'].filter(k => coneStates[k] > 0);
@@ -369,15 +423,15 @@ export function initMobileControls(core) {
   }
 
   ['click', 'touchend'].forEach(evt => {
-    if (btnR) btnR.addEventListener(evt, (e) => {
+    listen(btnR, evt, (e) => {
       if (e.type === 'touchend') e.preventDefault();
       handleConeClick('R');
     });
-    if (btnG) btnG.addEventListener(evt, (e) => {
+    listen(btnG, evt, (e) => {
       if (e.type === 'touchend') e.preventDefault();
       handleConeClick('G');
     });
-    if (btnB) btnB.addEventListener(evt, (e) => {
+    listen(btnB, evt, (e) => {
       if (e.type === 'touchend') e.preventDefault();
       handleConeClick('B');
     });
@@ -398,12 +452,12 @@ export function initMobileControls(core) {
         isInternalUpdate = false;
       }
     };
-    btnReset.addEventListener("click", handleReset);
-    btnReset.addEventListener("touchend", handleReset);
+    listen(btnReset, "click", handleReset);
+    listen(btnReset, "touchend", handleReset);
   }
 
   if (slider) {
-    slider.addEventListener("input", (e) => {
+    listen(slider, "input", (e) => {
       const val = parseFloat(e.target.value);
       if (sliderValLabel) sliderValLabel.textContent = val.toFixed(2) + "x";
       if (dockIntensityText) dockIntensityText.textContent = val.toFixed(1) + "x";
@@ -413,7 +467,7 @@ export function initMobileControls(core) {
   }
 
   // Core subscriber
-  core.subscribe(() => {
+  const unsubscribe = core.subscribe(() => {
     if (!isInternalUpdate) {
       syncConeStatesFromCurrent();
     }
@@ -434,6 +488,11 @@ export function initMobileControls(core) {
     fab,
     dock,
     onImageLoaded: () => {
+      if (disposed) return;
+      clearTransition();
+      fab.setAttribute('aria-expanded', 'false');
+      fab.inert = false;
+      dock.inert = true;
       if (fab) {
         fab.classList.remove("hidden", "opacity-0", "scale-75", "pointer-events-none");
         fab.classList.add("opacity-100", "scale-100", "pointer-events-auto");
@@ -444,6 +503,11 @@ export function initMobileControls(core) {
       }
     },
     cleanup: () => {
+      if (disposed) return;
+      disposed = true;
+      clearTransition();
+      events.abort();
+      unsubscribe();
       if (fab && fab.parentNode) fab.remove();
       if (dock && dock.parentNode) dock.remove();
     }

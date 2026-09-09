@@ -1,8 +1,10 @@
 import { state, container } from '../state.js';
 import { ishiharaData } from '../data.js';
 import { renderNextStage } from '../../app.js';
+import { createSubmissionGuard } from '../utils/session.js';
 
 export function renderIshiharaStage(stage) {
+  const acceptSubmission = createSubmissionGuard();
   container.innerHTML = "";
   const data = ishiharaData[stage];
 
@@ -56,6 +58,8 @@ export function renderIshiharaStage(stage) {
     );
     btn.style.setProperty('--stagger', `${300 + i * 80}ms`);
     btn.onclick = () => {
+      if (!acceptSubmission()) return;
+      btnBox.querySelectorAll('button').forEach(button => { button.disabled = true; });
       const isCorrect = (opt === data.answer);
       state.userHistory.push({ type: 'ishihara', stage, correct: data.answer, user: opt, isCorrect });
       if (isCorrect) state.score++;

@@ -103,6 +103,7 @@ class SpringAnimation {
   }
   
   update() {
+    if (!this.el.isConnected) { this.animating = false; return; }
     const force = (this.target - this.current) * this.stiffness;
     this.velocity += force;
     this.velocity *= this.damping;
@@ -111,7 +112,7 @@ class SpringAnimation {
     this.el.style.transform = `scale(${this.current.toFixed(4)})`;
     
     if (Math.abs(this.velocity) > 0.0001 || Math.abs(this.target - this.current) > 0.0001) {
-      requestAnimationFrame(this.update);
+      this.raf = requestAnimationFrame(this.update);
     } else {
       this.current = this.target;
       this.el.style.transform = `scale(${this.target})`;
@@ -120,6 +121,8 @@ class SpringAnimation {
   }
   
   destroy() {
+    cancelAnimationFrame(this.raf);
+    this.el.style.transform = '';
     this.el.removeEventListener('mouseenter', this.onEnter);
     this.el.removeEventListener('mouseleave', this.onLeave);
     this.el.removeEventListener('mousedown', this.onDown);
@@ -136,8 +139,10 @@ export function initInteractions() {
   isActive = true;
   
   cursorGlow = document.getElementById('cursor-glow');
-  window.addEventListener('mousemove', onGlobalMouseMove, { passive: true });
-  rafId = requestAnimationFrame(updateCursorGlow);
+  if (cursorGlow && getComputedStyle(cursorGlow).display !== 'none' && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.addEventListener('mousemove', onGlobalMouseMove, { passive: true });
+    rafId = requestAnimationFrame(updateCursorGlow);
+  }
 }
 
 export function refreshInteractions() {
@@ -150,7 +155,7 @@ export function refreshInteractions() {
     btn.addEventListener('mousemove', onButtonMouseMove, { passive: true });
     
     // Only apply spring to non-slim buttons (not inline small ones)
-    if (!btn.classList.contains('no-spring')) {
+    if (!btn.classList.contains('no-spring') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       springs.push(new SpringAnimation(btn));
     }
   });

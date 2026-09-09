@@ -844,3 +844,19 @@ body > svg[aria-hidden="true"] {
     display: none;
 }
 
+/* Keyboard-only affordances leave the default pointer presentation unchanged. */
+[role="button"]:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+        scroll-behavior: auto !important;
+    }
+}

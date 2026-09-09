@@ -1,14 +1,17 @@
 import { container } from '../state.js';
 import { renderNextStage } from '../../app.js';
+import { createSubmissionGuard } from '../utils/session.js';
+import { RGB_MATCH_THRESHOLD } from '../utils/scoring.js';
 
 export function renderTutorialStage(type) {
+  const acceptSubmission = createSubmissionGuard();
   let desc;
   if (type === 'ishihara') {
     desc = "컬러 도트 사이에서 <strong class='font-bold text-stone-800'>구별되는 숫자를 선택</strong>하는 가장 기본적인 색각 검사입니다.<br>색각 능력이 정상이라면 쉽게 읽을 수 있습니다.";
   } else if (type === 'sort') {
     desc = "주어진 5개의 <strong class='font-bold text-stone-800'>컬러 큐브를 드래그</strong>하여, 색상이 물 흐르듯 자연스럽게 변천되도록 순서를 맞추세요.<br>(반전된 색상 배열도 정답으로 인정됩니다)";
   } else {
-    desc = "좌측의 목표 색상과 완전히 똑같아지도록<br>아래의 <strong class='font-bold text-stone-800'>R/G/B 슬라이더를 미세조정</strong>하세요.<br>3차원 색상 오차가 35 미만일 경우에만 통과로 인정됩니다.";
+    desc = `좌측의 목표 색상과 완전히 똑같아지도록<br>아래의 <strong class='font-bold text-stone-800'>R/G/B 슬라이더를 미세조정</strong>하세요.<br>3차원 색상 오차가 ${RGB_MATCH_THRESHOLD} 미만일 경우에만 통과로 인정됩니다.`;
   }
 
   container.innerHTML = `
@@ -34,5 +37,10 @@ export function renderTutorialStage(type) {
       </div>
     </div>
   `;
-  document.getElementById("start-btn").onclick = () => renderNextStage();
+  const startButton = document.getElementById("start-btn");
+  startButton.onclick = () => {
+    if (!acceptSubmission()) return;
+    startButton.disabled = true;
+    renderNextStage();
+  };
 }
