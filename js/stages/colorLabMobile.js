@@ -9,10 +9,11 @@ export function renderMobileQuickActionsHTML() {
   if (!isRealMobileDevice()) return '';
   return `
     <div id="mobile-quick-actions" class="flex lg:hidden gap-2.5 w-full max-w-md mx-auto mb-3 justify-center">
-      <button onclick="window.setMode('home')" class="bg-stone-100 hover:bg-stone-200 border border-stone-200 transition-colors px-4 py-2.5 rounded-xl text-stone-600 font-bold text-xs flex items-center justify-center">홈으로</button>
-      <button onclick="document.getElementById('image-input').click()" class="glow-button flex-1 py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        <span>새 이미지</span>
+      <button onclick="window.setMode('home')" title="홈으로" class="bg-stone-100 hover:bg-stone-200 border border-stone-200 transition-colors px-4 py-2.5 rounded-xl text-stone-600 font-bold text-xs flex items-center justify-center">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-label="홈으로"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H4a1 1 0 0 1-1-1V9.5z"></path></svg>
+      </button>
+      <button onclick="document.getElementById('image-input').click()" title="새 이미지" class="glow-button flex-1 py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+        <svg class="w-4 h-4 mr-1" style="margin-right: 0; width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="새 이미지"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
       </button>
     </div>
   `;

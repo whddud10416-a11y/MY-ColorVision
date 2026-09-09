@@ -13,8 +13,8 @@ export function renderIshiharaStage(stage) {
 
   wrapper.innerHTML = `
     <div class="wide-container mx-auto relative w-full">
-      <!-- Layout container matching progress bar width (w-1/2 on desktop) -->
-      <div class="flex flex-col lg:flex-row items-center justify-between w-full lg:w-1/2 mx-auto gap-4 sm:gap-6 lg:gap-0 mt-1 sm:mt-4">
+      <!-- Layout container matching progress bar width (w-1/2 on desktop, capped with max-w-2xl) -->
+      <div class="flex flex-col lg:flex-row items-center justify-between w-full lg:w-1/2 max-w-2xl mx-auto gap-4 sm:gap-6 lg:gap-0 mt-1 sm:mt-4">
         
         <!-- Picture Set -->
         <div class="flex flex-col items-center animate-slide-left w-full lg:w-auto">

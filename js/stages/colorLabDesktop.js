@@ -70,10 +70,11 @@ export function renderDesktopControlsHTML(core) {
 
       <!-- Actions -->
       <div class="flex gap-2.5">
-        <button onclick="window.setMode('home')" class="bg-stone-100 border border-stone-200 hover:bg-stone-200 transition-colors w-[38%] py-2.5 rounded-xl text-stone-500 hover:text-stone-800 font-bold text-xs sm:text-sm flex justify-center items-center">홈으로</button>
-        <button onclick="document.getElementById('image-input').click()" class="glow-button flex-1 py-2.5 rounded-xl text-white font-bold text-xs sm:text-sm flex justify-center items-center">
-          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-          새 이미지
+        <button onclick="window.setMode('home')" title="홈으로" class="bg-stone-100 border border-stone-200 hover:bg-stone-200 transition-colors w-[38%] py-2.5 rounded-xl text-stone-500 hover:text-stone-800 font-bold text-xs sm:text-sm flex justify-center items-center">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-label="홈으로"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H4a1 1 0 0 1-1-1V9.5z"></path></svg>
+        </button>
+        <button onclick="document.getElementById('image-input').click()" title="새 이미지" class="glow-button flex-1 py-2.5 rounded-xl text-white font-bold text-xs sm:text-sm flex justify-center items-center">
+          <svg class="w-4 h-4 mr-1.5" style="margin-right: 0; width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="새 이미지"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
         </button>
       </div>
     </div>
