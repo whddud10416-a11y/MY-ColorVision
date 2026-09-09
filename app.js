@@ -42,15 +42,14 @@ function initEffects() {
   // Init cursor glow & interactions (no Three.js dependency)
   initInteractions();
 
-  // Custom cursor with particle effects — only on hover-capable (non-touch) devices
-  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Custom cursor with particle effects — runs on hover/pointer capable devices across all OS environments
   let destroyCursor = null;
   const updateCursor = (forceEnable = false) => {
     destroyCursor?.();
     destroyCursor = null;
     document.documentElement.classList.remove('has-custom-cursor');
     const isHover = forceEnable || isHoverPointerDevice() || (window.matchMedia && window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches);
-    if (isHover && !motion.matches) {
+    if (isHover) {
       try {
         destroyCursor = initCustomCursor();
         document.documentElement.style.cursor = 'none';
@@ -64,11 +63,10 @@ function initEffects() {
     }
   };
   updateCursor();
-  motion.addEventListener('change', () => { updateCursor(); refreshInteractions(); });
 
   const onPointerActivity = (e) => {
     if (e.pointerType === 'mouse' || (!e.pointerType && e.type === 'mousemove')) {
-      if (!destroyCursor && !motion.matches) {
+      if (!destroyCursor) {
         updateCursor(true);
       }
     }

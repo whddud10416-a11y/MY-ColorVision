@@ -139,7 +139,7 @@ export function initInteractions() {
   isActive = true;
   
   cursorGlow = document.getElementById('cursor-glow');
-  if (cursorGlow && getComputedStyle(cursorGlow).display !== 'none' && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (cursorGlow && getComputedStyle(cursorGlow).display !== 'none') {
     window.addEventListener('mousemove', onGlobalMouseMove, { passive: true });
     rafId = requestAnimationFrame(updateCursorGlow);
   }
@@ -155,7 +155,7 @@ export function refreshInteractions() {
     btn.addEventListener('mousemove', onButtonMouseMove, { passive: true });
     
     // Only apply spring to non-slim buttons (not inline small ones)
-    if (!btn.classList.contains('no-spring') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!btn.classList.contains('no-spring')) {
       springs.push(new SpringAnimation(btn));
     }
   });
