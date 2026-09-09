@@ -10,6 +10,7 @@ import { initInteractions, refreshInteractions } from './js/effects/interactions
 import { renderChallengeIntro } from './js/stages/challengeIntro.js';
 import { renderHomeStage } from './js/stages/home.js';
 import { initCustomCursor } from './js/effects/cursor.js';
+import { isHoverPointerDevice } from './js/utils/device.js';
 
 // ==========================================
 // 이펙트 시스템 및 로드 라이프사이클 초기화
@@ -38,7 +39,7 @@ function initEffects() {
   initInteractions();
 
   // Custom cursor with particle effects — only on hover-capable (non-touch) devices
-  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  if (isHoverPointerDevice()) {
     document.documentElement.style.cursor = 'none';
     initCustomCursor();
   }
@@ -177,6 +178,12 @@ export function setMode(newMode) {
     if (typeof window.cleanupHomeLoadingScrollLock === 'function') {
       window.cleanupHomeLoadingScrollLock();
       window.cleanupHomeLoadingScrollLock = null;
+    }
+
+    // Clean up home desktop resize & snap scroll listeners if active
+    if (typeof window.cleanupHomeDesktop === 'function') {
+      window.cleanupHomeDesktop();
+      window.cleanupHomeDesktop = null;
     }
 
     // Clean up Color Lab resize listeners if active

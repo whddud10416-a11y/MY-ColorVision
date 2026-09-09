@@ -739,21 +739,59 @@ nav button[style*="drop-shadow"] {
     box-shadow: 0 8px 24px rgba(44, 44, 44, 0.12) !important;
 }
 
-/* Hide Play button on mobile, show on desktop */
-@media (max-width: 767px) {
+/* Hide Play button only on real mobile devices (narrow viewport + coarse touch pointer) */
+@media (max-width: 767px) and (pointer: coarse) {
     #nav-challenge {
         display: none !important;
     }
 }
-@media (min-width: 768px) {
+/* Desktop (pointer: fine) or 768px and wider viewports */
+@media (min-width: 768px), (pointer: fine) {
     #nav-challenge {
         display: inline-block !important;
     }
 }
 
+/* Guard: On desktop mouse environments, prevent mobile floating dock/FAB/quick-actions from displaying */
+@media (pointer: fine) and (hover: hover) {
+    .mobile-glass-dock,
+    #mobile-control-fab,
+    #mobile-control-dock,
+    #mobile-quick-actions {
+        display: none !important;
+    }
+    #desktop-controls {
+        display: flex !important;
+    }
+}
+
+/* On real touch devices with narrow viewports, hide desktop controls */
+@media (max-width: 1023px) and (pointer: coarse) {
+    #desktop-controls {
+        display: none !important;
+    }
+}
+
+
 /* Film grain noise — hide */
 body > svg[aria-hidden="true"] {
     display: none !important;
+}
+
+/* ═══════════════════════════════════════════
+   HOME SNAP SCROLL SECTIONS (Dynamic Responsive)
+   ═══════════════════════════════════════════ */
+.home-snap-section {
+    height: 100dvh;
+    height: 100vh;
+    height: var(--home-section-h, 100dvh);
+    min-height: var(--home-section-h, 100dvh);
+    max-height: var(--home-section-h, 100dvh);
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 /* ═══════════════════════════════════════════

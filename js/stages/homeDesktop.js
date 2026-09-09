@@ -5,6 +5,7 @@
 import { container } from '../state.js';
 import { CVD_DATA } from '../data/cvdData.js';
 import { renderCones, renderSwatches, renderPrevalence } from './homeUI.js';
+import { isHoverPointerDevice } from '../utils/device.js';
 
 export function renderDesktopHome() {
   container.innerHTML = "";
@@ -15,7 +16,7 @@ export function renderDesktopHome() {
     <div class="flex flex-col w-full" id="home-scroll-root">
 
       <!-- ══ PAGE 1: Cover ══ -->
-      <section class="home-snap-section flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
+      <section class="home-snap-section flex flex-col items-center justify-center text-center px-4 sm:px-6 relative overflow-y-auto">
         <div id="home-cover-circle" class="absolute -z-10 w-72 h-72 sm:w-[420px] sm:h-[420px] rounded-full border border-stone-200/70 ${isCurrentlyLoading ? 'loading-circle' : ''}" style="background:radial-gradient(circle,rgba(200,190,255,0.1) 0%,transparent 70%);"></div>
         <h1 id="home-cover-title" class="mb-3 text-6xl sm:text-7xl lg:text-8xl font-bold text-stone-800 text-center tracking-tight ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="font-family:'Noto Serif KR',serif !important;line-height:1.15;letter-spacing:calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">Color Vision</h1>
         <p id="home-cover-subtitle" class="text-stone-400 text-sm sm:text-base font-semibold tracking-[0.22em] uppercase mb-6 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 300ms;">색각 능력 진단 플랫폼</p>
@@ -56,7 +57,7 @@ export function renderDesktopHome() {
       </section>
 
       <!-- ══ PAGE 3: Feature Cards ══ -->
-      <section class="home-snap-section flex flex-col items-center justify-center px-4 lg:px-8">
+      <section class="home-snap-section flex flex-col items-center justify-center px-4 lg:px-8 overflow-y-auto">
         <div class="max-w-5xl mx-auto w-full flex flex-col gap-5">
           <div class="text-center">
             <h2 class="display-font text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-800 mb-6">Search</h2>
@@ -129,6 +130,12 @@ export function renderDesktopHome() {
 
   container.innerHTML = html;
 
+  // Clean up any previous home desktop resize & scroll listeners
+  if (typeof window.cleanupHomeDesktop === 'function') {
+    window.cleanupHomeDesktop();
+    window.cleanupHomeDesktop = null;
+  }
+
   // ── Snap scroll setup ──
   const appEl = document.getElementById('app');
   const mainEl = document.querySelector('main');
@@ -142,21 +149,95 @@ export function renderDesktopHome() {
     appEl.style.scrollBehavior = 'smooth';
   }
 
-  const sectionH = mainEl ? mainEl.clientHeight : (appEl ? appEl.clientHeight : window.innerHeight);
-
-  const existingStyle = document.getElementById('home-snap-style');
-  if (existingStyle) existingStyle.remove();
-  const style = document.createElement('style');
-  style.id = 'home-snap-style';
-  style.textContent = `
-    .home-snap-section {
-      height: ${sectionH}px;
-      flex-shrink: 0;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
+  // 동적 높이 갱신 함수: 창 크기/해상도 변경 시 CSS 변수 및 스타일 태그 실시간 동기화
+  const updateDimensions = () => {
+    const currentH = appEl ? appEl.clientHeight : (mainEl ? mainEl.clientHeight : window.innerHeight);
+    if (currentH > 0) {
+      document.documentElement.style.setProperty('--home-section-h', `${currentH}px`);
+      const existingStyle = document.getElementById('home-snap-style');
+      if (existingStyle) existingStyle.remove();
+      const style = document.createElement('style');
+      style.id = 'home-snap-style';
+      style.textContent = `
+        .home-snap-section {
+          height: ${currentH}px;
+          min-height: ${currentH}px;
+          flex-shrink: 0;
+          scroll-snap-align: start;
+          scroll-snap-stop: normal;
+          box-sizing: border-box;
+        }
+      `;
+      document.head.appendChild(style);
     }
-  `;
-  document.head.appendChild(style);
+  };
+
+  updateDimensions();
+
+  // 현재 활성화된 섹션 인덱스 추적 (0: Cover, 1: CVD, 2: Feature Cards)
+  let currentSectionIdx = 0;
+  const onScroll = () => {
+    if (!appEl) return;
+    const h = appEl.clientHeight || window.innerHeight;
+    if (h > 0) {
+      currentSectionIdx = Math.round(appEl.scrollTop / h);
+    }
+  };
+  if (appEl) {
+    appEl.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  // 해상도 변경 시 실시간 동적 적용 및 스크롤 위치 보정
+  let resizeTimer = null;
+  const onResize = () => {
+    if (!appEl) return;
+    // 리사이즈 도중 스냅 충돌 및 덜덜거림 방지를 위해 auto 전환
+    appEl.style.scrollBehavior = 'auto';
+    updateDimensions();
+    if (typeof updateArrows === 'function') {
+      updateArrows();
+    }
+
+    // 현재 보고 있던 섹션 위치로 스크롤 즉시 보정
+    const h = appEl.clientHeight || window.innerHeight;
+    if (h > 0) {
+      appEl.scrollTop = currentSectionIdx * h;
+    }
+
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (appEl) {
+        appEl.style.scrollBehavior = 'smooth';
+      }
+    }, 80);
+  };
+
+  window.addEventListener('resize', onResize);
+
+  let resizeObserver = null;
+  if (typeof ResizeObserver !== 'undefined' && appEl) {
+    resizeObserver = new ResizeObserver(() => {
+      onResize();
+    });
+    resizeObserver.observe(appEl);
+  }
+
+  window.cleanupHomeDesktop = () => {
+    window.removeEventListener('resize', onResize);
+    if (appEl) {
+      appEl.removeEventListener('scroll', onScroll);
+    }
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+      resizeObserver = null;
+    }
+    if (resizeTimer) {
+      clearTimeout(resizeTimer);
+      resizeTimer = null;
+    }
+    const snapStyle = document.getElementById('home-snap-style');
+    if (snapStyle) snapStyle.remove();
+  };
 
   // ── Loading sequence transition controller ──
   if (isCurrentlyLoading) {
@@ -259,7 +340,6 @@ export function renderDesktopHome() {
   };
 
   updateArrows();
-  window.addEventListener('resize', updateArrows);
 
   if (btnLeft && btnRight) {
     btnLeft.addEventListener('click', () => {
@@ -282,7 +362,7 @@ export function renderDesktopHome() {
 
   // Handle dynamic flip direction and hover/touch flipping
   const flipCards = document.querySelectorAll('.flip-card');
-  const isHoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const isHoverDevice = isHoverPointerDevice();
 
   flipCards.forEach(card => {
     if (isHoverDevice) {

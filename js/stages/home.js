@@ -2,7 +2,7 @@
  * home.js
  * Entry coordinator for Home Stage (routes to Mobile or Desktop module based on device/layout)
  */
-import { isMobileLayout } from '../utils/device.js';
+import { isRealMobileDevice } from '../utils/device.js';
 import { renderMobileHome } from './homeMobile.js';
 import { renderDesktopHome } from './homeDesktop.js';
 
@@ -10,7 +10,7 @@ let activeLayout = null; // 'mobile' | 'desktop'
 let resizeBound = false;
 
 export function renderHomeStage() {
-  const isMobile = isMobileLayout();
+  const isMobile = isRealMobileDevice();
   activeLayout = isMobile ? 'mobile' : 'desktop';
 
   if (!resizeBound) {
@@ -21,7 +21,7 @@ export function renderHomeStage() {
       const isHomeActive = navHome && navHome.classList.contains('active-nav');
       if (!isHomeActive) return;
 
-      const currentlyMobile = isMobileLayout();
+      const currentlyMobile = isRealMobileDevice();
       const target = currentlyMobile ? 'mobile' : 'desktop';
       if (activeLayout !== target) {
         renderHomeStage();

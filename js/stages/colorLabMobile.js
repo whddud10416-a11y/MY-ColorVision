@@ -3,7 +3,10 @@
  * Mobile Controls for Color Lab: Floating Action Button, Frosted Glass Slim Dock, R/G/B Cone Toggles & Sliders
  */
 
+import { isRealMobileDevice } from '../utils/device.js';
+
 export function renderMobileQuickActionsHTML() {
+  if (!isRealMobileDevice()) return '';
   return `
     <div id="mobile-quick-actions" class="flex lg:hidden gap-2.5 w-full max-w-md mx-auto mb-3 justify-center">
       <button onclick="window.setMode('home')" class="bg-stone-100 hover:bg-stone-200 border border-stone-200 transition-colors px-4 py-2.5 rounded-xl text-stone-600 font-bold text-xs flex items-center justify-center">홈으로</button>
@@ -21,6 +24,16 @@ export function initMobileControls(core) {
   if (oldFab) oldFab.remove();
   const oldDock = document.getElementById("mobile-control-dock");
   if (oldDock) oldDock.remove();
+
+  // 실제 모바일 기기가 아닌 경우(PC 브라우저 등)에는 모바일 플로팅 컨트롤을 생성하지 않음
+  if (!isRealMobileDevice()) {
+    return {
+      fab: null,
+      dock: null,
+      onImageLoaded: () => {},
+      cleanup: () => {}
+    };
+  }
 
   // 1. FAB Button (mounted directly to body for fixed viewport stability)
   const fab = document.createElement("button");
