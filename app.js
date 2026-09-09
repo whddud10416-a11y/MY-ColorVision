@@ -135,7 +135,7 @@ function renderProgressBar() {
 
   const bar = document.createElement('div');
   bar.id = 'progress-bar-container';
-  bar.className = 'w-1/2 mx-auto mb-4 px-2';
+  bar.className = 'w-1/2 max-w-2xl mx-auto mb-4 px-2';
   bar.innerHTML = `
     <div class="flex items-center justify-between mb-1">
       <span class="text-[10px] font-semibold text-stone-400 tracking-wide">${sectionLabel} ${sectionStage}/${sectionTotal}</span>
