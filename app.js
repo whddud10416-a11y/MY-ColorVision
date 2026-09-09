@@ -10,7 +10,7 @@ import { initInteractions, refreshInteractions } from './js/effects/interactions
 import { renderChallengeIntro } from './js/stages/challengeIntro.js';
 import { renderHomeStage } from './js/stages/home.js';
 import { initCustomCursor } from './js/effects/cursor.js';
-import { isHoverPointerDevice } from './js/utils/device.js';
+import { isHoverPointerDevice, isRealMobileDevice } from './js/utils/device.js';
 import { beginSession, currentSession, finishSession, remainingSeconds } from './js/utils/session.js';
 
 // ==========================================
@@ -45,22 +45,36 @@ function initEffects() {
   // Custom cursor with particle effects — only on hover-capable (non-touch) devices
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let destroyCursor = null;
-  const updateCursor = () => {
+  const updateCursor = (forceEnable = false) => {
     destroyCursor?.();
     destroyCursor = null;
-    if (isHoverPointerDevice() && !motion.matches) {
+    document.documentElement.classList.remove('has-custom-cursor');
+    const isHover = forceEnable || isHoverPointerDevice() || (window.matchMedia && window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches);
+    if (isHover && !motion.matches) {
       try {
         destroyCursor = initCustomCursor();
         document.documentElement.style.cursor = 'none';
+        document.documentElement.classList.add('has-custom-cursor');
       } catch (error) {
         document.getElementById('cursor-canvas')?.remove();
         document.documentElement.style.cursor = '';
+        document.documentElement.classList.remove('has-custom-cursor');
         console.warn('Custom cursor unavailable; using the system cursor', error);
       }
     }
   };
   updateCursor();
   motion.addEventListener('change', () => { updateCursor(); refreshInteractions(); });
+
+  const onPointerActivity = (e) => {
+    if (e.pointerType === 'mouse' || (!e.pointerType && e.type === 'mousemove')) {
+      if (!destroyCursor && !motion.matches) {
+        updateCursor(true);
+      }
+    }
+  };
+  window.addEventListener('pointermove', onPointerActivity, { passive: true });
+  window.addEventListener('mousemove', onPointerActivity, { passive: true });
 }
 
 // ==========================================

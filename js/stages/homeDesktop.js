@@ -371,39 +371,32 @@ export function renderDesktopHome() {
 
   // Handle dynamic flip direction and hover/touch flipping
   const flipCards = document.querySelectorAll('.flip-card');
-  const isHoverDevice = isHoverPointerDevice();
 
   flipCards.forEach(card => {
-    if (isHoverDevice) {
-      card.addEventListener('mouseenter', (e) => {
+    card.addEventListener('mouseenter', (e) => {
+      const rect = card.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      const deg = e.clientX < center ? '180deg' : '-180deg';
+      card.style.setProperty('--flip-deg', deg);
+      flipCards.forEach(c => { if (c !== card) c.classList.remove('flipped'); });
+      card.classList.add('flipped');
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.classList.remove('flipped');
+    });
+
+    card.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() === 'button') return;
+      if (!isHoverPointerDevice()) {
         const rect = card.getBoundingClientRect();
         const center = rect.left + rect.width / 2;
         const deg = e.clientX < center ? '180deg' : '-180deg';
         card.style.setProperty('--flip-deg', deg);
         flipCards.forEach(c => { if (c !== card) c.classList.remove('flipped'); });
-        card.classList.add('flipped');
-      });
-
-      card.addEventListener('mouseleave', () => {
-        card.classList.remove('flipped');
-      });
-
-      card.addEventListener('click', (e) => {
-        if (e.target.tagName.toLowerCase() === 'button') return;
-      });
-    } else {
-      card.addEventListener('click', (e) => {
-        if (e.target.tagName.toLowerCase() === 'button') return;
-        if (e.clientX) {
-          const rect = card.getBoundingClientRect();
-          const center = rect.left + rect.width / 2;
-          const deg = e.clientX < center ? '180deg' : '-180deg';
-          card.style.setProperty('--flip-deg', deg);
-        }
-        flipCards.forEach(c => { if (c !== card) c.classList.remove('flipped'); });
         card.classList.toggle('flipped');
-      });
-    }
+      }
+    });
   });
 
   // CVD Explorer logic

@@ -850,6 +850,12 @@ body > svg[aria-hidden="true"] {
     outline-offset: 4px;
 }
 
+html.has-custom-cursor,
+html.has-custom-cursor body,
+html.has-custom-cursor * {
+    cursor: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -860,3 +866,4 @@ body > svg[aria-hidden="true"] {
         scroll-behavior: auto !important;
     }
 }
+
