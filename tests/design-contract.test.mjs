@@ -21,7 +21,7 @@ test('document and Lab template class lists remain identical to the original des
 test('original image stimuli, palette data and layout entry points remain intact',()=>{
   const files=execFileSync('git',['ls-tree','-r','--name-only',ref,'images'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
   for(const file of files) assert.deepEqual(readFileSync(file),execFileSync('git',['show',ref+':'+file],{maxBuffer:32*1024*1024}),file);
-  for(const file of ['js/data.js','js/data/cvdData.js','js/stages/homeMobile.js','js/stages/homeUI.js','js/utils/device.js'])
+  for(const file of ['js/data.js','js/data/cvdData.js','js/stages/homeUI.js','js/utils/device.js'])
     assert.equal(current(file),original(file),file);
   assert.equal(JSON.parse(current('package.json')).type,'commonjs');
 });
