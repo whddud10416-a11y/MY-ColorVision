@@ -34,6 +34,14 @@ export function initCustomCursor() {
   let isDown     = false;
   let isHover    = false;
   let animId     = null;
+  let isRunning  = false;
+
+  function wakeUp() {
+    if (!isRunning && !document.hidden) {
+      isRunning = true;
+      animId = requestAnimationFrame(animate);
+    }
+  }
 
   // ── Line Trail ──
   // Stores {x, y, t} history. Drawn as a fading stroke.
@@ -55,14 +63,29 @@ export function initCustomCursor() {
   const onLeave = () => {
     mouse.x = -200;
     mouse.y = -200;
+    wakeUp();
   };
   document.addEventListener('mouseleave', onLeave);
 
   const onOver = (e) => {
     const el = e.target.closest('button, a, [role="button"], input, label, [draggable="true"], .color-cube, .cvd-btn, .flip-card');
-    isHover = !!el;
+    const newHover = !!el;
+    if (isHover !== newHover) {
+      isHover = newHover;
+      wakeUp();
+    }
   };
   document.addEventListener('mouseover', onOver);
+
+  const onVisibilityChange = () => {
+    if (!document.hidden) {
+      wakeUp();
+    } else if (animId) {
+      cancelAnimationFrame(animId);
+      isRunning = false;
+    }
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
 
   function onMove(e) {
     mouse.x = e.clientX;
@@ -71,13 +94,18 @@ export function initCustomCursor() {
     // Record position for line trail
     trail.push({ x: mouse.x, y: mouse.y, t: performance.now() });
     if (trail.length > TRAIL_MAX_LEN) trail.shift();
+    wakeUp();
   }
 
-  function onDown() { isDown = true; }
+  function onDown() {
+    isDown = true;
+    wakeUp();
+  }
 
   function onUp(e) {
     isDown = false;
     spawnBurst(e.clientX, e.clientY);
+    wakeUp();
   }
 
   // ── Burst factory — 파스텔 RGB 12개 ──
@@ -98,20 +126,20 @@ export function initCustomCursor() {
 
     // Burst: 12개를 RGB 순서로 4개씩 배분
     for (let i = 0; i < COUNT; i++) {
-      const [r, g, b] = PASTEL[i % 3];          // 0,1,2 순환
-      const angle     = (i / COUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-      const speed     = 2.8 + Math.random() * 4.5;
+      const color = PASTEL[i % 3]; // R, G, B 순환
+      const angle = (Math.PI * 2 / COUNT) * i + (Math.random() - 0.5) * 0.4;
+      const speed = 1.8 + Math.random() * 2.8;
 
       particles.push({
-        type:    'burst',
+        type: 'spark',
         x, y,
-        vx:      Math.cos(angle) * speed,
-        vy:      Math.sin(angle) * speed,
-        r, g, b,
-        alpha:   0.90 + Math.random() * 0.10,
-        size:    3 + Math.random() * 3.5,
-        decay:   0.020 + Math.random() * 0.015,
-        gravity: 0.09 + Math.random() * 0.05,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 2.2 + Math.random() * 1.6,
+        r: color[0], g: color[1], b: color[2],
+        alpha: 0.85,
+        decay: 0.016 + Math.random() * 0.012,
+        gravity: 0.05,
       });
     }
   }
@@ -121,51 +149,37 @@ export function initCustomCursor() {
     return `rgba(${r},${g},${b},${Math.max(0, a).toFixed(3)})`;
   }
 
-  // ── Draw: Line Trail (베지어 곡선 잔상) ──
+  // ── Draw: Line trail (잔상) ──
   function drawTrail(now) {
-    // Prune expired points
-    trail = trail.filter(p => now - p.t < TRAIL_LIFETIME);
-    if (trail.length < 3) return;
-
-    // Pre-compute midpoints — these become the actual curve anchors.
-    // Using adjacent midpoints as start/end of each quadratic segment
-    // keeps the curve smooth through every recorded point.
-    const mids = [];
-    for (let i = 0; i < trail.length - 1; i++) {
-      mids.push({
-        x: (trail[i].x + trail[i + 1].x) / 2,
-        y: (trail[i].y + trail[i + 1].y) / 2,
-      });
+    // Expire old points
+    while (trail.length > 0 && (now - trail[0].t) > TRAIL_LIFETIME) {
+      trail.shift();
     }
 
-    // Draw each segment as: moveTo(mid[i]) → quadraticCurveTo(pt[i+1], mid[i+1])
-    for (let i = 0; i < mids.length - 1; i++) {
-      const ctrl = trail[i + 1];           // original point → control point
-      const m0   = mids[i];               // segment start (midpoint)
-      const m1   = mids[i + 1];           // segment end   (midpoint)
+    if (trail.length < 2) return;
 
-      // Age-based alpha: newer segments are more opaque
-      const age   = 1 - (now - ctrl.t) / TRAIL_LIFETIME;
-      const alpha = Math.max(0, age * 0.52);
+    for (let i = 1; i < trail.length; i++) {
+      const p0 = trail[i - 1];
+      const p1 = trail[i];
+      const age = now - p1.t;
+      const progress = 1 - Math.min(1, age / TRAIL_LIFETIME); // 1 = new, 0 = old
 
-      // Thickness: tapers at tail, slightly thicker near head
-      const t  = (i + 1) / mids.length;  // 0 = tail, 1 = head
-      const lw = 0.8 + t * 1.8;
+      const alpha = progress * 0.22;
+      const width = 0.8 + progress * 1.6;
 
       ctx.save();
-      ctx.strokeStyle = rgba(80, 65, 50, alpha);
-      ctx.lineWidth   = lw;
+      ctx.strokeStyle = rgba(60, 50, 40, alpha);
+      ctx.lineWidth   = width;
       ctx.lineCap     = 'round';
-      ctx.lineJoin    = 'round';
       ctx.beginPath();
-      ctx.moveTo(m0.x, m0.y);
-      ctx.quadraticCurveTo(ctrl.x, ctrl.y, m1.x, m1.y);
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
       ctx.stroke();
       ctx.restore();
     }
   }
 
-  // ── Draw: Cursor dot ──
+  // ── Draw: Cursor dot (3px base) ──
   function drawCursorDot(x, y) {
     const size  = isDown ? 2.5 : isHover ? 4.5 : 3;
     const alpha = isDown ? 1.0 : 0.9;
@@ -202,16 +216,17 @@ export function initCustomCursor() {
     ctx.restore();
   }
 
-  // ── Animation loop ──
+  // ── Animation loop with idle sleep for low-spec devices ──
   function animate() {
-    animId = requestAnimationFrame(animate);
     const now = performance.now();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Lag outer ring toward mouse
     const lag = isHover ? 0.09 : 0.13;
-    ring.x += (mouse.x - ring.x) * lag;
-    ring.y += (mouse.y - ring.y) * lag;
+    const dx = mouse.x - ring.x;
+    const dy = mouse.y - ring.y;
+    ring.x += dx * lag;
+    ring.y += dy * lag;
 
     // 1) Line trail (잔상) — drawn first, below everything
     drawTrail(now);
@@ -257,13 +272,26 @@ export function initCustomCursor() {
     // 3) Cursor on top
     drawCursorRing(ring.x, ring.y);
     drawCursorDot(mouse.x, mouse.y);
+
+    // Idle sleep check: if ring caught up, no particles, no active trail, pause RAF
+    const distSq = dx * dx + dy * dy;
+    const isIdle = particles.length === 0 && trail.length === 0 && distSq < 0.1 && !isDown;
+    if (isIdle) {
+      ring.x = mouse.x;
+      ring.y = mouse.y;
+      isRunning = false;
+      animId = null;
+    } else {
+      animId = requestAnimationFrame(animate);
+    }
   }
 
-  animate();
+  wakeUp();
 
   // ── Cleanup ──
   return function destroy() {
-    cancelAnimationFrame(animId);
+    if (animId) cancelAnimationFrame(animId);
+    isRunning = false;
     canvas.remove();
     document.documentElement.style.cursor = '';
     document.removeEventListener('mousemove', onMove);
@@ -271,6 +299,7 @@ export function initCustomCursor() {
     document.removeEventListener('mouseup',   onUp);
     document.removeEventListener('mouseleave', onLeave);
     document.removeEventListener('mouseover', onOver);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('resize', resize);
   };
 }

@@ -10,6 +10,7 @@
     "test:visual": "node tests/visual.mjs",
     "test": "npm run test:unit && npm run test:e2e",
     "verify": "npm run build:css && npm test",
+    "clean": "node -e \"const fs=require('fs');['artifacts','test-results','playwright-report'].forEach(d=>{if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true});});console.log('Cleaned test/artifact directories.');\"",
     "postinstall": "node -e \"if(process.platform==='linux'){try{require('child_process').execSync('sudo rm -f /etc/apt/sources.list.d/*chrome* /etc/apt/sources.list.d/*google* && sudo apt-get update -y && npx playwright install-deps chromium',{stdio:'inherit'});}catch(e){console.warn(e);}}\""
   },
   "keywords": [],

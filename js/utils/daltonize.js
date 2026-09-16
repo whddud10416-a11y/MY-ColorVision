@@ -8,99 +8,122 @@ const matrices = {
 export function processPixels(imageData, type, severity, mode, intensityScale) {
   if (type === 'default' || severity === 0) return imageData;
   const d = imageData.data;
+  const len = d.length;
   const finalSeverity = Math.min(1.0, severity * intensityScale);
-  
-  for (let i = 0; i < d.length; i += 4) {
-    let r = d[i], g = d[i+1], b = d[i+2];
+  const invSeverity = 1 - finalSeverity;
+  const overdrive = Math.max(1.0, intensityScale);
+
+  const isAchromato = type === 'achromato';
+  let m00 = 1, m01 = 0, m02 = 0;
+  let m10 = 0, m11 = 1, m12 = 0;
+  let m20 = 0, m21 = 0, m22 = 1;
+
+  if (!isAchromato) {
+    let mat1 = null, mat2 = null;
+    if (type === 'redgreen') { mat1 = matrices.protan; mat2 = matrices.deutan; }
+    else if (type === 'redblue') { mat1 = matrices.protan; mat2 = matrices.tritan; }
+    else if (type === 'greenblue') { mat1 = matrices.deutan; mat2 = matrices.tritan; }
+
+    if (mat1 && mat2) {
+      m00 = (mat1[0][0] + mat2[0][0]) * 0.5;
+      m01 = (mat1[0][1] + mat2[0][1]) * 0.5;
+      m02 = (mat1[0][2] + mat2[0][2]) * 0.5;
+      m10 = (mat1[1][0] + mat2[1][0]) * 0.5;
+      m11 = (mat1[1][1] + mat2[1][1]) * 0.5;
+      m12 = (mat1[1][2] + mat2[1][2]) * 0.5;
+      m20 = (mat1[2][0] + mat2[2][0]) * 0.5;
+      m21 = (mat1[2][1] + mat2[2][1]) * 0.5;
+      m22 = (mat1[2][2] + mat2[2][2]) * 0.5;
+    } else if (matrices[type]) {
+      const mat = matrices[type];
+      m00 = mat[0][0]; m01 = mat[0][1]; m02 = mat[0][2];
+      m10 = mat[1][0]; m11 = mat[1][1]; m12 = mat[1][2];
+      m20 = mat[2][0]; m21 = mat[2][1]; m22 = mat[2][2];
+    }
+  }
+
+  if (mode === 'simulate') {
+    for (let i = 0; i < len; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      let simR, simG, simB;
+
+      if (isAchromato) {
+        const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+        simR = luma; simG = luma; simB = luma;
+      } else {
+        simR = r * m00 + g * m01 + b * m02;
+        simG = r * m10 + g * m11 + b * m12;
+        simB = r * m20 + g * m21 + b * m22;
+      }
+
+      d[i]     = r * invSeverity + simR * finalSeverity;
+      d[i + 1] = g * invSeverity + simG * finalSeverity;
+      d[i + 2] = b * invSeverity + simB * finalSeverity;
+    }
+    return imageData;
+  }
+
+  // Daltonize mode
+  for (let i = 0; i < len; i += 4) {
+    const r = d[i], g = d[i + 1], b = d[i + 2];
     let simR, simG, simB;
 
-    if (type === 'achromato') {
+    if (isAchromato) {
       const luma = 0.299 * r + 0.587 * g + 0.114 * b;
       simR = luma; simG = luma; simB = luma;
     } else {
-      let mat1, mat2;
-      if(type === 'redgreen') { mat1 = matrices.protan; mat2 = matrices.deutan; }
-      else if(type === 'redblue') { mat1 = matrices.protan; mat2 = matrices.tritan; }
-      else if(type === 'greenblue') { mat1 = matrices.deutan; mat2 = matrices.tritan; }
-      
-      if (mat1 && mat2) {
-          simR = r * ((mat1[0][0] + mat2[0][0])/2) + g * ((mat1[0][1] + mat2[0][1])/2) + b * ((mat1[0][2] + mat2[0][2])/2);
-          simG = r * ((mat1[1][0] + mat2[1][0])/2) + g * ((mat1[1][1] + mat2[1][1])/2) + b * ((mat1[1][2] + mat2[1][2])/2);
-          simB = r * ((mat1[2][0] + mat2[2][0])/2) + g * ((mat1[2][1] + mat2[2][1])/2) + b * ((mat1[2][2] + mat2[2][2])/2);
-      } else {
-          const mat = matrices[type];
-          simR = r * mat[0][0] + g * mat[0][1] + b * mat[0][2];
-          simG = r * mat[1][0] + g * mat[1][1] + b * mat[1][2];
-          simB = r * mat[2][0] + g * mat[2][1] + b * mat[2][2];
-      }
+      simR = r * m00 + g * m01 + b * m02;
+      simG = r * m10 + g * m11 + b * m12;
+      simB = r * m20 + g * m21 + b * m22;
     }
 
-    // Interpolate for Anomaly (Severity)
-    simR = r * (1 - finalSeverity) + simR * finalSeverity;
-    simG = g * (1 - finalSeverity) + simG * finalSeverity;
-    simB = b * (1 - finalSeverity) + simB * finalSeverity;
+    simR = r * invSeverity + simR * finalSeverity;
+    simG = g * invSeverity + simG * finalSeverity;
+    simB = b * invSeverity + simB * finalSeverity;
 
-    if (mode === 'simulate') {
-      d[i] = simR; d[i+1] = simG; d[i+2] = simB;
-    } else {
-      // Daltonization mode
-      let errR = r - simR;
-      let errG = g - simG;
-      let errB = b - simB;
+    const errR = r - simR;
+    const errG = g - simG;
+    const errB = b - simB;
 
-      let corrR = r, corrG = g, corrB = b;
-      let overdrive = Math.max(1.0, intensityScale);
+    let corrR = r, corrG = g, corrB = b;
 
-      // Shift colors that they can't see into channels they CAN see
-      // Intensified Daltonization to break Ishihara plates
-      if (type === 'protan') {
-        // Cannot see red: heavily shift red error to blue, keeping brightness
-        corrG += errR * 0.5 * overdrive;
-        corrB += errR * 1.5 * overdrive;
-      } else if (type === 'deutan') {
-        // Cannot see green: shift green error to blue and red
-        corrR += errG * 0.5 * overdrive;
-        corrB += errG * 1.5 * overdrive;
-      } else if (type === 'tritan') {
-        // Cannot see blue: shift blue error to red and green
-        corrR += errB * 1.5 * overdrive;
-        corrG += errB * 0.5 * overdrive;
-      } else if (type === 'achromato') {
-        // 전색맹 환자는 오직 명도(밝기)만 인지합니다. 채도를 올려도 의미가 없습니다.
-        // 따라서 '색상 차이'를 '명암 차이'로 완전히 억지로 변환해 주어야 합니다!
-        // 빨강은 밝게(White), 초록/파랑은 어둡게(Black) 만들어서 경계선을 만듭니다.
-        let redGreenDiff = r - g; // 빨간색일수록 양수, 초록색일수록 음수
-        let newLuma = simR + (redGreenDiff * 1.0 * overdrive);
-        
-        corrR = newLuma;
-        corrG = newLuma;
-        corrB = newLuma;
-      } else if (type === 'redgreen') {
-        // Red-Green composite: explicitly push reds to bright blue, greens to dark yellow
-        // This guarantees differentiation on Ishihara plates
-        corrB += errR * 1.5 * overdrive;
-        corrR -= errG * 0.5 * overdrive;
-        corrG -= errG * 0.5 * overdrive;
-        corrB -= errG * 0.5 * overdrive;
-      } else if (type === 'redblue') {
-        // Push Red to Green, Blue to Dark/Yellow
-        corrG += errR * 1.5 * overdrive;
-        corrR += errB * 0.5 * overdrive;
-        corrG -= errB * 0.5 * overdrive;
-        corrB -= errB * 1.5 * overdrive;
-      } else if (type === 'greenblue') {
-        // Push Green to Red, Blue to Dark
-        corrR += errG * 1.5 * overdrive;
-        corrR -= errB * 0.5 * overdrive;
-        corrG -= errB * 0.5 * overdrive;
-        corrB -= errB * 1.5 * overdrive;
-      }
-
-      d[i] = Math.min(255, Math.max(0, corrR));
-      d[i+1] = Math.min(255, Math.max(0, corrG));
-      d[i+2] = Math.min(255, Math.max(0, corrB));
+    if (type === 'protan') {
+      corrG += errR * 0.5 * overdrive;
+      corrB += errR * 1.5 * overdrive;
+    } else if (type === 'deutan') {
+      corrR += errG * 0.5 * overdrive;
+      corrB += errG * 1.5 * overdrive;
+    } else if (type === 'tritan') {
+      corrR += errB * 1.5 * overdrive;
+      corrG += errB * 0.5 * overdrive;
+    } else if (type === 'achromato') {
+      const redGreenDiff = r - g;
+      const newLuma = simR + (redGreenDiff * 1.0 * overdrive);
+      corrR = newLuma;
+      corrG = newLuma;
+      corrB = newLuma;
+    } else if (type === 'redgreen') {
+      corrB += errR * 1.5 * overdrive;
+      corrR -= errG * 0.5 * overdrive;
+      corrG -= errG * 0.5 * overdrive;
+      corrB -= errG * 0.5 * overdrive;
+    } else if (type === 'redblue') {
+      corrG += errR * 1.5 * overdrive;
+      corrR += errB * 0.5 * overdrive;
+      corrG -= errB * 0.5 * overdrive;
+      corrB -= errB * 1.5 * overdrive;
+    } else if (type === 'greenblue') {
+      corrR += errG * 1.5 * overdrive;
+      corrR -= errB * 0.5 * overdrive;
+      corrG -= errB * 0.5 * overdrive;
+      corrB -= errB * 1.5 * overdrive;
     }
+
+    d[i]     = Math.min(255, Math.max(0, corrR));
+    d[i + 1] = Math.min(255, Math.max(0, corrG));
+    d[i + 2] = Math.min(255, Math.max(0, corrB));
   }
+
   return imageData;
 }
 

@@ -5,7 +5,6 @@ import { renderRgbMatchStage } from './js/stages/rgbMatch.js';
 import { renderFinalScore } from './js/stages/results.js';
 import { renderTutorialStage } from './js/stages/tutorial.js';
 import { renderColorLab } from './js/stages/colorLab.js';
-import { initLiquidGlass } from './js/effects/liquidGlass.js';
 import { initInteractions, refreshInteractions } from './js/effects/interactions.js';
 import { renderChallengeIntro } from './js/stages/challengeIntro.js';
 import { renderHomeStage } from './js/stages/home.js';
@@ -27,13 +26,16 @@ function initEffects() {
   const background = document.getElementById('webgl-bg');
   // The existing design hides this canvas. Do not load/render an invisible effect.
   if (background && getComputedStyle(background).display !== 'none') {
-    import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js')
-    .then(THREE => {
+    Promise.all([
+      import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js'),
+      import('./js/effects/liquidGlass.js')
+    ])
+    .then(([THREE, { initLiquidGlass }]) => {
       window.THREE = THREE;
       initLiquidGlass();
     })
     .catch(err => {
-      console.warn('Three.js ES module failed to load, skipping WebGL effects', err);
+      console.warn('WebGL effects failed to load', err);
     });
   }
   // Retain the original home entrance sequence without waiting for decoration.
