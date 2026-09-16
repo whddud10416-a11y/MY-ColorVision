@@ -64,6 +64,13 @@ export function renderMobileHome() {
         </button>
       </div>
 
+      <!-- Disclaimer Footer -->
+      <p id="home-cover-disclaimer"
+        class="mt-8 text-stone-400 text-xs sm:text-sm max-w-xs mx-auto break-keep leading-relaxed transition-all ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}"
+        style="--stagger: 600ms;">
+        본 웹 페이지는 참고용이며 정확한 진단은 전문의를 통해야 합니다.
+      </p>
+
     </div>
   `;
 
@@ -85,6 +92,7 @@ export function renderMobileHome() {
         const subtitle = document.getElementById('home-cover-subtitle');
         const desc = document.getElementById('home-cover-desc');
         const buttons = document.getElementById('home-cover-buttons');
+        const disclaimer = document.getElementById('home-cover-disclaimer');
 
         if (title) {
           title.style.setProperty('--stagger', '0ms');
@@ -105,6 +113,11 @@ export function renderMobileHome() {
           buttons.style.setProperty('--stagger', '450ms');
           buttons.classList.remove('opacity-0', 'pointer-events-none');
           buttons.classList.add('animate-focus-in');
+        }
+        if (disclaimer) {
+          disclaimer.style.setProperty('--stagger', '600ms');
+          disclaimer.classList.remove('opacity-0', 'pointer-events-none');
+          disclaimer.classList.add('animate-focus-in');
         }
       }, remaining);
     };

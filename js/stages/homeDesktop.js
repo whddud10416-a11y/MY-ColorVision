@@ -19,16 +19,21 @@ export function renderDesktopHome() {
       <section class="home-snap-section flex flex-col items-center justify-center text-center px-4 sm:px-6 relative overflow-y-auto">
         <div id="home-cover-circle" class="absolute -z-10 w-72 h-72 sm:w-[420px] sm:h-[420px] rounded-full border border-stone-200/70 ${isCurrentlyLoading ? 'loading-circle' : ''}" style="background:radial-gradient(circle,rgba(200,190,255,0.1) 0%,transparent 70%);"></div>
         <h1 id="home-cover-title" class="mb-3 text-6xl sm:text-7xl lg:text-8xl font-bold text-stone-800 text-center tracking-tight ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="font-family:'Noto Serif KR',serif !important;line-height:1.15;letter-spacing:calc(0.04em + 1px) !important; text-align: center !important; --stagger: 0ms;">Color Vision</h1>
-        <p id="home-cover-subtitle" class="text-stone-400 text-sm sm:text-base font-semibold tracking-[0.22em] uppercase mb-6 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 300ms;">색각 능력 진단 플랫폼</p>
-        <p id="home-cover-desc" class="text-stone-500 text-sm sm:text-base max-w-lg mx-auto break-keep leading-relaxed mb-10 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 600ms;">
-          색각 이상은 단순한 시력 문제가 아닌,<br>세상을 인지하는 또 다른 방식입니다.
-        </p>
-        <div id="home-cover-scroll" class="${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 900ms;">
-          <div class="flex flex-col items-center gap-1.5 animate-bounce">
-            <span class="text-[11px] text-stone-400 tracking-widest uppercase">Scroll</span>
-            <svg class="w-5 h-5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <div id="home-cover-fade-group" class="flex flex-col items-center w-full transition-[opacity,transform] duration-300 ease-out" style="will-change: opacity, transform;">
+          <p id="home-cover-subtitle" class="text-stone-400 text-sm sm:text-base font-semibold tracking-[0.22em] uppercase mb-6 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 300ms;">색각 능력 진단 플랫폼</p>
+          <p id="home-cover-desc" class="text-stone-500 text-sm sm:text-base max-w-lg mx-auto break-keep leading-relaxed mb-10 ${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 600ms;">
+            색각 이상은 단순한 시력 문제가 아닌,<br>세상을 인지하는 또 다른 방식입니다.
+          </p>
+          <div id="home-cover-scroll" class="${isCurrentlyLoading ? 'opacity-0 pointer-events-none' : 'animate-focus-in'}" style="--stagger: 900ms;">
+            <div class="flex flex-col items-center gap-1.5 animate-bounce">
+              <span class="text-[11px] text-stone-400 tracking-widest uppercase">Scroll</span>
+              <svg class="w-5 h-5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
           </div>
         </div>
+        <p id="home-cover-disclaimer" class="absolute bottom-5 sm:bottom-7 left-0 right-0 text-center text-stone-400 text-xs sm:text-sm font-normal tracking-tight px-4 pointer-events-none" style="opacity: 0; visibility: hidden; will-change: opacity, transform;">
+          본 웹 페이지는 참고용이며 정확한 진단은 전문의를 통해야 합니다.
+        </p>
       </section>
 
       <!-- ══ PAGE 2: CVD Explorer ══ -->
@@ -176,16 +181,49 @@ export function renderDesktopHome() {
 
   // 현재 활성화된 섹션 인덱스 추적 (0: Cover, 1: CVD, 2: Feature Cards)
   let currentSectionIdx = 0;
-  const onScroll = () => {
+  let isCoverEntranceDone = !isCurrentlyLoading;
+
+  const updateScrollFade = () => {
     if (!appEl) return;
     const h = appEl.clientHeight || window.innerHeight;
     if (h > 0) {
       currentSectionIdx = Math.round(appEl.scrollTop / h);
     }
+
+    if (!isCoverEntranceDone) return;
+
+    const fadeGroup = document.getElementById('home-cover-fade-group');
+    const disclaimer = document.getElementById('home-cover-disclaimer');
+    if (!fadeGroup && !disclaimer) return;
+
+    // 사용자가 스크롤을 내리기 시작하면 즉각적으로 fadeout (60px 이동 시 완전 소멸)
+    const scrollTop = appEl.scrollTop;
+    const fadeDistance = 60;
+    const progress = Math.min(1, Math.max(0, scrollTop / fadeDistance));
+    const opacity = (1 - progress).toFixed(3);
+    const translateY = (-progress * 20).toFixed(1);
+
+    if (fadeGroup) {
+      fadeGroup.style.opacity = opacity;
+      fadeGroup.style.transform = `translateY(${translateY}px)`;
+      fadeGroup.style.visibility = opacity <= 0.01 ? 'hidden' : 'visible';
+      fadeGroup.style.pointerEvents = opacity <= 0.05 ? 'none' : '';
+    }
+    if (disclaimer) {
+      disclaimer.style.opacity = opacity;
+      disclaimer.style.transform = `translateY(${translateY}px)`;
+      disclaimer.style.visibility = opacity <= 0.01 ? 'hidden' : 'visible';
+      disclaimer.style.pointerEvents = opacity <= 0.05 ? 'none' : '';
+    }
+  };
+
+  const onScroll = () => {
+    updateScrollFade();
   };
   if (appEl) {
     appEl.addEventListener('scroll', onScroll, { passive: true });
   }
+  window.addEventListener('scroll', onScroll, { passive: true });
 
   // 해상도 변경 시 실시간 동적 적용 및 스크롤 위치 보정
   let resizeTimer = null;
@@ -224,6 +262,7 @@ export function renderDesktopHome() {
 
   window.cleanupHomeDesktop = () => {
     window.removeEventListener('resize', onResize);
+    window.removeEventListener('scroll', onScroll);
     if (appEl) {
       appEl.removeEventListener('scroll', onScroll);
     }
@@ -284,11 +323,29 @@ export function renderDesktopHome() {
         const subtitle = document.getElementById('home-cover-subtitle');
         const desc = document.getElementById('home-cover-desc');
         const scroll = document.getElementById('home-cover-scroll');
+        const disclaimer = document.getElementById('home-cover-disclaimer');
 
         if (title) {
           title.style.setProperty('--stagger', '0ms');
           title.classList.remove('opacity-0', 'pointer-events-none');
           title.classList.add('animate-focus-in');
+        }
+        if (disclaimer) {
+          isCoverEntranceDone = true;
+          disclaimer.style.visibility = 'visible';
+          disclaimer.style.opacity = '0';
+          disclaimer.style.transform = 'translateY(10px)';
+          disclaimer.style.transition = 'opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1), transform 1.2s cubic-bezier(0.22, 1, 0.36, 1)';
+          requestAnimationFrame(() => {
+            disclaimer.style.opacity = '1';
+            disclaimer.style.transform = 'translateY(0)';
+            disclaimer.classList.remove('pointer-events-none');
+          });
+          setTimeout(() => {
+            if (disclaimer) {
+              disclaimer.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
+            }
+          }, 1200);
         }
         if (subtitle) {
           subtitle.style.setProperty('--stagger', '300ms');
@@ -325,6 +382,16 @@ export function renderDesktopHome() {
       startTransition();
     } else {
       document.addEventListener('app-loaded', onAppLoaded);
+    }
+  } else {
+    isCoverEntranceDone = true;
+    const disclaimer = document.getElementById('home-cover-disclaimer');
+    if (disclaimer) {
+      disclaimer.classList.remove('pointer-events-none');
+      disclaimer.style.visibility = 'visible';
+      disclaimer.style.opacity = '1';
+      disclaimer.style.transform = 'translateY(0)';
+      disclaimer.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
     }
   }
 
