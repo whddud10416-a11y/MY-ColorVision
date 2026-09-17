@@ -44,18 +44,47 @@ function initEffects() {
   // Init cursor glow & interactions (no Three.js dependency)
   initInteractions();
 
-  // Custom cursor with particle effects — runs on hover/pointer capable devices across all OS environments
+  // Custom cursor with particle effects — runs on hover/pointer capable desktop devices
   let destroyCursor = null;
+
+  const isMobileOrTouchDevice = () => {
+    if (typeof window === 'undefined') return false;
+    if (isRealMobileDevice()) return true;
+    const ua = navigator.userAgent || '';
+    if (/Macintosh/i.test(ua) && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 1) {
+      return true;
+    }
+    if (window.matchMedia) {
+      if (window.matchMedia('(pointer: coarse) and (hover: none)').matches) return true;
+      if (window.matchMedia('(pointer: coarse)').matches && !window.matchMedia('(pointer: fine)').matches) return true;
+    }
+    return false;
+  };
+
   const updateCursor = (forceEnable = false) => {
     destroyCursor?.();
     destroyCursor = null;
     document.documentElement.classList.remove('has-custom-cursor');
-    const isHover = forceEnable || isHoverPointerDevice() || (window.matchMedia && window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches);
+    document.documentElement.style.cursor = '';
+    document.getElementById('cursor-canvas')?.remove();
+
+    if (isMobileOrTouchDevice()) {
+      return;
+    }
+
+    const isHover = !isMobileOrTouchDevice() && (
+      forceEnable ||
+      isHoverPointerDevice() ||
+      (window.matchMedia && window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches)
+    );
+
     if (isHover) {
       try {
         destroyCursor = initCustomCursor();
-        document.documentElement.style.cursor = 'none';
-        document.documentElement.classList.add('has-custom-cursor');
+        if (destroyCursor && document.getElementById('cursor-canvas')) {
+          document.documentElement.style.cursor = 'none';
+          document.documentElement.classList.add('has-custom-cursor');
+        }
       } catch (error) {
         document.getElementById('cursor-canvas')?.remove();
         document.documentElement.style.cursor = '';
@@ -66,7 +95,18 @@ function initEffects() {
   };
   updateCursor();
 
+  let lastTouchTimestamp = 0;
+  const onTouchStart = () => {
+    lastTouchTimestamp = Date.now();
+  };
+  window.addEventListener('touchstart', onTouchStart, { passive: true, capture: true });
+
   const onPointerActivity = (e) => {
+    if (isMobileOrTouchDevice()) return;
+    if (e.pointerType === 'touch') return;
+    if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+    if (Date.now() - lastTouchTimestamp < 600) return;
+
     if (e.pointerType === 'mouse' || (!e.pointerType && e.type === 'mousemove')) {
       if (!destroyCursor) {
         updateCursor(true);
@@ -75,6 +115,11 @@ function initEffects() {
   };
   window.addEventListener('pointermove', onPointerActivity, { passive: true });
   window.addEventListener('mousemove', onPointerActivity, { passive: true });
+  window.addEventListener('resize', () => updateCursor(), { passive: true });
+  if (window.matchMedia) {
+    const hoverQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    hoverQuery.addEventListener?.('change', () => updateCursor());
+  }
 }
 
 // ==========================================

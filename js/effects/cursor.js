@@ -2,8 +2,30 @@
    CUSTOM CURSOR — Particle System
    Warm Editorial Design
    ========================================== */
+import { isRealMobileDevice } from '../utils/device.js';
+
+function isMobileOrTouchEnv() {
+  if (typeof window === 'undefined') return true;
+  if (isRealMobileDevice()) return true;
+  const ua = navigator.userAgent || '';
+  if (/Macintosh/i.test(ua) && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 1) {
+    return true;
+  }
+  if (window.matchMedia) {
+    if (window.matchMedia('(pointer: coarse) and (hover: none)').matches) return true;
+    if (window.matchMedia('(pointer: coarse)').matches && !window.matchMedia('(pointer: fine)').matches) return true;
+  }
+  return false;
+}
 
 export function initCustomCursor() {
+  if (isMobileOrTouchEnv()) {
+    document.getElementById('cursor-canvas')?.remove();
+    document.documentElement.style.cursor = '';
+    document.documentElement.classList.remove('has-custom-cursor');
+    return () => {};
+  }
+
   // ── Canvas Setup ──
   const canvas = document.createElement('canvas');
   canvas.id = 'cursor-canvas';
@@ -56,6 +78,13 @@ export function initCustomCursor() {
     [180, 180, 255], // pastel blue
   ];
 
+  // ── Touch guard ──
+  let lastTouchTime = 0;
+  const onTouchStart = () => {
+    lastTouchTime = performance.now();
+  };
+  window.addEventListener('touchstart', onTouchStart, { passive: true, capture: true });
+
   // ── Mouse events ──
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mousedown', onDown);
@@ -87,7 +116,15 @@ export function initCustomCursor() {
   };
   document.addEventListener('visibilitychange', onVisibilityChange);
 
+  function isTouchEvent(e) {
+    if (e?.pointerType === 'touch') return true;
+    if (e?.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return true;
+    if (performance.now() - lastTouchTime < 700) return true;
+    return false;
+  }
+
   function onMove(e) {
+    if (isTouchEvent(e)) return;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
 
@@ -97,12 +134,14 @@ export function initCustomCursor() {
     wakeUp();
   }
 
-  function onDown() {
+  function onDown(e) {
+    if (isTouchEvent(e)) return;
     isDown = true;
     wakeUp();
   }
 
   function onUp(e) {
+    if (isTouchEvent(e)) return;
     isDown = false;
     spawnBurst(e.clientX, e.clientY);
     wakeUp();
@@ -290,6 +329,7 @@ export function initCustomCursor() {
 
   // ── Cleanup ──
   return function destroy() {
+    window.removeEventListener('touchstart', onTouchStart, { capture: true });
     if (animId) cancelAnimationFrame(animId);
     isRunning = false;
     canvas.remove();
